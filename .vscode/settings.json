@@ -1,0 +1,12 @@
+{
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.quickSuggestionsDelay": 5,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "explorer.sortOrder": "type",
+    "editor.cursorStyle": "block",
+    "editor.cursorBlinking": "smooth",
+    "files.trimFinalNewlines": true,
+    "editor.acceptSuggestionOnEnter": "off"
+}
