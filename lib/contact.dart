@@ -47,8 +47,9 @@ class _ContactTraceState extends State<ContactTrace> {
                   elevation: 10,
                   child: Container(
                     padding: EdgeInsets.fromLTRB(32, 9, 32, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: ListView(
+                      physics: BouncingScrollPhysics(),
+                      controller: s,
                       children: [
                         Center(
                           child: Container(
@@ -65,41 +66,46 @@ class _ContactTraceState extends State<ContactTrace> {
                           'Daftar riwayat kontak',
                           style: aHeadingStyle,
                         ),
-                        SizedBox(height: 16),
-                        Expanded(
-                          child: ListView.builder(
-                            controller: s,
-                            itemCount: 25,
-                            itemBuilder: (context, idx) {
-                              return Container(
-                                margin: EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
-                                    color: aAccentColor,
-                                    borderRadius: BorderRadius.circular(14)),
-                                child: ListTile(
-                                  trailing: Container(
-                                    decoration: BoxDecoration(
-                                      color: aToscaColor,
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                    padding: EdgeInsets.all(6),
-                                    width: 36,
-                                    child: Icon(
-                                      Icons.map,
-                                      color: Colors.white,
-                                    ),
+                        SwitchListTile(
+                          value: false,
+                          onChanged: (value) {
+                            print("di klik");
+                          },
+                          subtitle: Text("Lindungi diri"),
+                          title: Text("Aktifkan tracing"),
+                        ),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: 25,
+                          itemBuilder: (context, idx) {
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                  color: aAccentColor,
+                                  borderRadius: BorderRadius.circular(14)),
+                              child: ListTile(
+                                trailing: Container(
+                                  decoration: BoxDecoration(
+                                    color: aToscaColor,
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
-                                  subtitle: Text(
-                                    'Rabu $idx, Mei 2020',
-                                    style: aDescriptionStyle,
+                                  padding: EdgeInsets.all(6),
+                                  width: 36,
+                                  child: Icon(
+                                    Icons.map,
+                                    color: Colors.white,
                                   ),
-                                  title: Text('+6289539765726$idx',
-                                      style: aCTAStyle),
                                 ),
-                              );
-                            },
-                          ),
-                        )
+                                subtitle: Text(
+                                  'Rabu $idx, Mei 2020',
+                                  style: aDescriptionStyle,
+                                ),
+                                title: Text('+6289539765726$idx',
+                                    style: aCTAStyle),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
