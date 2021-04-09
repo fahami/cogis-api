@@ -16,12 +16,25 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-$router->group(['middleware' => 'auth'], function () use ($router) {
-    $router->get('api/user', 'UserController@index');
-    $router->get('api/user/{id}', 'UserController@find');
-    $router->put('api/user/{id}/', 'UserController@update');
-    $router->delete('api/user/{id}/', 'UserController@delete');
-    $router->get('api/geojson/', 'UserController@geojson');
+$router->post('register', 'UserController@register');
+$router->post('login', 'UserController@login');
+$router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($router) {
+    $router->delete('/{id}', 'UserController@delete');
+    $router->put('/{id}', 'UserController@update');
+    $router->get('/{id}', 'UserController@find');
+    $router->get('/', 'UserController@index');
 });
-$router->post('api/user', 'UserController@create');
-$router->post('api/login', 'UserController@login');
+
+$router->group(['prefix' => 'node', 'middleware' => 'auth'], function () use ($router) {
+    $router->get('/geojson', 'NodeController@geojson');
+    $router->get('/admin', 'NodeController@details');
+    $router->get('/{id}', 'NodeController@find');
+    $router->get('/', 'NodeController@index');
+});
+
+$router->group(['prefix' => 'scan', 'middleware' => 'auth'], function () use ($router) {
+    $router->post('/date', 'ScanController@range');
+    $router->post('/{id}', 'ScanController@add');
+    $router->get('/{id}', 'ScanController@find');
+    $router->get('/', 'ScanController@index');
+});

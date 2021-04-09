@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -15,9 +13,9 @@ class UserController extends Controller
     public function index()
     {
         $user = User::all();
-        return response()->json($user);
+        return response()->json($user, 200);
     }
-    public function create(Request $request)
+    public function register(Request $request)
     {
         $user = new User();
         $user->name = $request->input('name');
@@ -27,7 +25,7 @@ class UserController extends Controller
         $user->pwd = Hash::make($request->input('pwd'));
         $user->api_token = Str::random(40);
         $user->save();
-        return response()->json(['status' => 200, 'data' => $user]);
+        return response()->json($user, 200);
     }
     public function find($id)
     {
@@ -36,9 +34,8 @@ class UserController extends Controller
     }
     public function delete($id)
     {
-        $user = User::find($id);
-        $user->delete();
-        return response()->json($user);
+        User::find($id)->delete();
+        return response()->json(['status' => 200, 'message' => 'User deleted'], 200);
     }
     public function update(Request $request, $id)
     {
@@ -50,7 +47,7 @@ class UserController extends Controller
             'lat' => $request->lat,
             'lng' => $request->lng
         ]);
-        return response()->json(['status' => 200]);
+        return response()->json(['status' => 200], 200);
     }
     public function login(Request $request)
     {
@@ -59,7 +56,7 @@ class UserController extends Controller
             'pwd' => 'required|string|min:6'
         ]);
         if ($validator->fails()) {
-            return response()->json(['status' => 400]);
+            return response()->json(['status' => 400], 400);
         }
         $user = User::where('phone', $request->phone)->first();
         if ($user && Hash::check($request->pwd, $user->pwd)) {
@@ -74,27 +71,6 @@ class UserController extends Controller
                 ]
             ]);
         }
-        return response()->json(['status' => 404]);
-    }
-    public function geojson()
-    {
-        $user = DB::table('users')->select('lat', 'lng')->get();
-        $user->map(function ($data) {
-            $data->type = "Feature";
-            $data->geometry = (object) [
-                "type" => "Point",
-                "coordinates" => [
-                    floatval($data->lat),
-                    floatval($data->lng),
-                ]
-            ];
-            $data->properties = (object)[
-                "icon" => "rocket"
-            ];
-            unset($data->lat);
-            unset($data->lng);
-            return $data;
-        });
-        return response()->json($user);
+        return response()->json(['status' => 404], 404);
     }
 }
