@@ -28,13 +28,13 @@ $router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($r
 $router->group(['prefix' => 'node', 'middleware' => 'auth'], function () use ($router) {
     $router->get('/geojson', 'NodeController@geojson');
     $router->get('/admin', 'NodeController@details');
-    $router->post('/{id}', 'NodeController@find');
-    $router->post('/', 'NodeController@index');
+    $router->get('/{id}', 'NodeController@find');
+    $router->get('/', 'NodeController@index');
 });
 
 $router->group(['prefix' => 'scan', 'middleware' => 'auth'], function () use ($router) {
     $router->post('/date', 'ScanController@range');
     $router->post('/{id}', 'ScanController@add');
-    $router->post('/{id}', 'ScanController@find');
-    $router->post('/', 'ScanController@index');
+    $router->get('/{id}', 'ScanController@find');
+    $router->get('/', 'ScanController@index');
 });
