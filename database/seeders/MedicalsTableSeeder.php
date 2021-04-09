@@ -17,7 +17,7 @@ class MedicalsTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create('id_ID');
-        foreach (range(0, 100) as $i) {
+        foreach (range(1, 100) as $i) {
             DB::table('medicals')->insert([
                 'id_user' => $faker->numberBetween(1, $i),
                 'suhu' => $faker->numberBetween(34, 37),

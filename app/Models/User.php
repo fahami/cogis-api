@@ -12,7 +12,6 @@ use Laravel\Lumen\Auth\Authorizable;
 class User extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authorizable, Authenticatable;
-    // protected $appends = ['geojson'];
     protected $primaryKey = 'id_user';
     protected $guarded = [];
     protected $hidden = [

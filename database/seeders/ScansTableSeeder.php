@@ -17,7 +17,7 @@ class ScansTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create('id_ID');
-        foreach (range(0, 100) as $i) {
+        foreach (range(0, 500) as $i) {
             DB::table('scans')->insert([
                 'id_area' => $faker->numberBetween(1, 5),
                 'lat' => $faker->latitude,

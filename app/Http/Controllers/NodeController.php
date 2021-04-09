@@ -72,8 +72,8 @@ class NodeController extends Controller
             $data->geometry = (object) [
                 "type" => "Point",
                 "coordinates" => [
-                    floatval($data->lat),
                     floatval($data->lng),
+                    floatval($data->lat),
                 ]
             ];
             $data->properties = (object)[
