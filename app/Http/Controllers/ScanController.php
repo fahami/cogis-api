@@ -19,7 +19,7 @@ class ScanController extends Controller
         });
         return response()->json($scan, 200);
     }
-    public function find($id)
+    public function find(Request $request, $id)
     {
         $scan = Scan::select('id_user', 'id_slave', 'scan_date')->where('id_user', $id)->get();
         $scan->map(function ($data) {
