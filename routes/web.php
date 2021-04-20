@@ -22,6 +22,7 @@ $router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($r
     $router->delete('/{id}', 'UserController@delete');
     $router->put('/{id}', 'UserController@update');
     $router->get('/{id}', 'UserController@find');
+    $router->put('/state', 'UserController@updatestate');
     $router->get('/', 'UserController@index');
 });
 

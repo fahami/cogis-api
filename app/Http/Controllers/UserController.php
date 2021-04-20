@@ -49,6 +49,14 @@ class UserController extends Controller
         ]);
         return response()->json(['status' => 200], 200);
     }
+    public function updatestate(Request $request)
+    {
+        $user = User::where('phone', $request->phone)->first();
+        $user->update([
+            'state' => $request->state,
+        ]);
+        return response()->json(['status' => 200], 200);
+    }
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -63,13 +71,10 @@ class UserController extends Controller
             $token = Str::random(40);
             $user->update(['api_token' => $token]);
             return response()->json([
-                'status' => 200,
-                'data' => [
-                    'id' => $user->id_user,
-                    'name' => $user->name,
-                    'api_token' => $token,
-                ]
-            ]);
+                'id' => $user->id_user,
+                'name' => $user->name,
+                'api_token' => $token,
+            ], 200);
         }
         return response()->json(['status' => 404], 404);
     }
