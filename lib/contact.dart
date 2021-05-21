@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
+import 'package:gis_apps/components/build_list_cta.dart';
+import 'package:gis_apps/components/build_location_indicator.dart';
 import 'package:gis_apps/constants/color.dart';
+import 'package:gis_apps/model/scans.dart';
+import 'package:gis_apps/provider/broadcast_provider.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
 
 import 'constants/text.dart';
+import 'provider/scan_provider.dart';
 
 class ContactTrace extends StatefulWidget {
   @override
@@ -38,100 +46,83 @@ class _ContactTraceState extends State<ContactTrace> {
             ),
             DraggableScrollableSheet(
               initialChildSize: 0.3,
-              minChildSize: 0.2,
+              minChildSize: 0.3,
               maxChildSize: 0.5,
               builder: (c, s) {
                 return Material(
                   color: aLightColor,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   elevation: 10,
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(32, 9, 32, 0),
-                    child: ListView(
-                      physics: BouncingScrollPhysics(),
-                      controller: s,
-                      children: [
-                        Center(
-                          child: Container(
-                            height: 4,
-                            width: 60,
-                            margin: EdgeInsets.only(bottom: 17),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.grey[300],
+                  child: MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<BroadcastBLE>(
+                        create: (context) => BroadcastBLE(),
+                      ),
+                      ChangeNotifierProvider<ScanBLE>(
+                        create: (context) => ScanBLE(),
+                      ),
+                    ],
+                    child: Container(
+                      padding: EdgeInsets.only(top: 9),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: Container(
+                              height: 4,
+                              width: 60,
+                              margin: EdgeInsets.only(bottom: 17),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[300],
+                              ),
                             ),
                           ),
-                        ),
-                        Text(
-                          'Daftar riwayat kontak',
-                          style: aHeadingStyle,
-                        ),
-                        SwitchListTile(
-                          value: false,
-                          onChanged: (value) {
-                            print("di klik");
-                          },
-                          subtitle: Text("Lindungi diri"),
-                          title: Text("Aktifkan tracing"),
-                        ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: 25,
-                          itemBuilder: (context, idx) {
-                            return Container(
-                              margin: EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(
-                                  color: aAccentColor,
-                                  borderRadius: BorderRadius.circular(14)),
-                              child: ListTile(
-                                trailing: Container(
-                                  decoration: BoxDecoration(
-                                    color: aToscaColor,
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
-                                  padding: EdgeInsets.all(6),
-                                  width: 36,
-                                  child: Icon(
-                                    Icons.map,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  'Rabu $idx, Mei 2020',
-                                  style: aDescriptionStyle,
-                                ),
-                                title: Text('+6289539765726$idx',
-                                    style: aCTAStyle),
+                          Text(
+                            'Daftar riwayat kontak',
+                            style: aHeadingStyle,
+                          ),
+                          Consumer<ScanBLE>(
+                            builder: (context, scanBLE, _) =>
+                                Consumer<BroadcastBLE>(
+                              builder: (context, broadcastBLE, _) =>
+                                  SwitchListTile(
+                                value: broadcastBLE.isBroadcasting,
+                                onChanged: (value) {
+                                  broadcastBLE.isBroadcasting = value;
+                                  scanBLE.isScanning = value;
+                                },
+                                subtitle: Text(broadcastBLE.statusBroadcasting),
+                                title: Text("Aktifkan tracing"),
                               ),
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+                          ),
+                          Expanded(
+                            child: ValueListenableBuilder(
+                              valueListenable:
+                                  Hive.box('scansresult').listenable(),
+                              builder: (context, box, child) {
+                                return ListView.builder(
+                                  controller: s,
+                                  itemCount: box.length,
+                                  itemBuilder: (context, index) {
+                                    final itemScan =
+                                        box.getAt(index) as ScansResult;
+                                    return ListCTA(
+                                        titleCTA: itemScan.master,
+                                        subtitleCTA: itemScan.slave);
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                width: 212,
-                padding: EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8), color: aLightColor),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Icon(Icons.location_on, color: aAccentColor),
-                    Text(
-                      'Surabaya, Jawa Timur',
-                      style: aLocationStyle,
-                    ),
-                    Icon(Icons.expand_more, color: aTextColor),
-                  ],
-                ),
-              ),
-            ),
+            Align(alignment: Alignment.topCenter, child: GPSLocation()),
           ],
         ),
       ),

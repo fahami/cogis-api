@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HospitalCTA extends StatelessWidget {
+class TrailCTA extends StatelessWidget {
   final String url;
   final IconData icon;
-  const HospitalCTA({
+  const TrailCTA({
     Key key,
     this.url,
     this.icon,
@@ -19,7 +19,7 @@ class HospitalCTA extends StatelessWidget {
         if (await canLaunch(urlCall)) {
           await launch(urlCall);
         } else
-          throw 'Could not launch call';
+          throw 'Could not launch action';
       },
       child: Container(
         decoration: BoxDecoration(

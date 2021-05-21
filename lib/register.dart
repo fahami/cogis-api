@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/constants/text.dart';
-import 'package:gis_apps/login.dart';
+import 'package:gis_apps/provider/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'components/build_input_rounded.dart';
 import 'package:get/get.dart';
 
@@ -12,6 +13,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController pwdController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
   bool _checkedVal = false;
   @override
   Widget build(BuildContext context) {
@@ -49,14 +53,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Column(
                       children: [
                         InputRoundedField(
+                          controller: nameController,
                           hintText: 'Nama lengkap',
                           inputType: TextInputType.name,
                         ),
                         InputRoundedField(
+                          controller: phoneController,
                           hintText: 'Nomor telepon',
                           inputType: TextInputType.phone,
                         ),
                         InputRoundedField(
+                          controller: pwdController,
                           hintText: 'Kata sandi',
                           inputType: TextInputType.text,
                           obsecure: true,
@@ -89,8 +96,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: TextButton(
                               style: TextButton.styleFrom(
                                   backgroundColor: aAccentColor),
-                              onPressed: () {
-                                Get.to(() => LoginScreen());
+                              onPressed: () async {
+                                if (_checkedVal == true) {
+                                  var req = await Provider.of<AuthSystem>(
+                                          context,
+                                          listen: false)
+                                      .createUser(
+                                          name: nameController.text,
+                                          phone: phoneController.text,
+                                          pwd: pwdController.text);
+                                  req == null
+                                      ? print('gagal daftar')
+                                      : Get.toNamed('/home');
+                                }
                               },
                               child: Text(
                                 'Daftar',

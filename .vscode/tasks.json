@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flutter-Launch-All",
+            "dependsOn": [
+                "Flutter-Redmi 4X",
+                "Flutter-Redmi Note 8",
+            ]
+        },
+        {
+            "label": "Flutter-Redmi 4X",
+            "type": "shell",
+            "command": "flutter run -d 'Redmi 4X' "
+        },
+        {
+            "label": "Flutter-Redmi Note 8",
+            "type": "shell",
+            "command": "flutter run -d 'Redmi Note 8' "
+        },
+    ]
+}

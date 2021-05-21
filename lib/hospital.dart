@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:gis_apps/constants/color.dart';
-import 'package:gis_apps/constants/text.dart';
-import 'package:gis_apps/components/build_hospital_cta.dart';
-import 'package:gis_apps/persistance/hospital_data.dart';
+import 'package:gis_apps/model/hospitals.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import 'components/build_list_cta.dart';
+import 'persistance/hospital_data.dart';
 
 class Hospital extends StatefulWidget {
   @override
@@ -19,55 +21,50 @@ class _HospitalState extends State<Hospital> {
         title: Text('Daftar Rumah Sakit'),
       ),
       body: SafeArea(
-        child: Container(
-          child: ListView.builder(
-            itemCount: hospital_list.length,
-            itemBuilder: (context, idx) {
-              return ZoomIn(
-                delay: Duration(milliseconds: idx * 80),
-                child: Container(
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 32),
-                  decoration: BoxDecoration(
-                      color: aAccentColor,
-                      borderRadius: BorderRadius.circular(14)),
-                  child: ListTile(
-                    trailing: Container(
-                      width: 80,
-                      child: Row(
-                        children: [
-                          HospitalCTA(
-                            url: "tel:" + hospital_list[idx]['telp'],
-                            icon: Icons.phone,
+        child: FutureBuilder(
+          future: Hive.openBox('hospitals'),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(snapshot.error),
+                );
+              }
+              final hospitals = Hive.box('hospitals');
+              if (hospitals.length == 0) {
+                Center(child: CircularProgressIndicator());
+                return insertHospital();
+              }
+              return Container(
+                child: ValueListenableBuilder(
+                  valueListenable: hospitals.listenable(),
+                  builder: (context, box, _) {
+                    return ListView.builder(
+                      itemCount: box.length,
+                      itemBuilder: (context, index) {
+                        final itemHospital = box.getAt(index) as Hospitals;
+                        return ZoomIn(
+                          child: ListCTA(
+                            titleCTA: itemHospital.name,
+                            subtitleCTA: itemHospital.address,
+                            iconCTA1: Icons.navigation,
+                            iconCTA2: Icons.call,
+                            urlCTA1:
+                                "https://www.google.com/maps/dir/?api=1&destination=${itemHospital.name} ${itemHospital.address}",
+                            urlCTA2: "tel:${itemHospital.phone}",
                           ),
-                          SizedBox(width: 8),
-                          HospitalCTA(
-                            url:
-                                "https://www.google.com/maps/dir/?api=1&destination=" +
-                                    hospital_list[idx]['name'] +
-                                    " " +
-                                    hospital_list[idx]['address'],
-                            icon: Icons.navigation,
-                          ),
-                        ],
-                      ),
-                    ),
-                    subtitle: Text(
-                      hospital_list[idx]['address'],
-                      style: aDescriptionStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    title: Text(
-                      hospital_list[idx]['name'],
-                      style: aHospitalStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                        );
+                      },
+                    );
+                  },
                 ),
               );
-            },
-          ),
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
         ),
       ),
     );

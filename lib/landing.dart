@@ -1,11 +1,20 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:gis_apps/provider/broadcast_provider.dart';
-import 'package:gis_apps/provider/scan_provider.dart';
+import 'package:flutter_blue/flutter_blue.dart';
+import 'package:get/instance_manager.dart';
+import 'package:get/state_manager.dart';
+import 'package:gis_apps/model/scans.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
+import 'components/build_location_indicator.dart';
+import 'components/build_quick_button.dart';
 import 'components/build_menu.dart';
+import 'provider/broadcast_provider.dart';
+import 'provider/scan_provider.dart';
 import 'constants/color.dart';
 import 'constants/text.dart';
 
@@ -13,6 +22,25 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: StreamBuilder<bool>(
+        stream: FlutterBlue.instance.isScanning,
+        initialData: false,
+        builder: (c, snapshot) {
+          if (snapshot.data) {
+            return FloatingActionButton(
+              child: Icon(Icons.stop),
+              backgroundColor: aAccentColor,
+              onPressed: () => FlutterBlue.instance.stopScan(),
+            );
+          } else {
+            return FloatingActionButton(
+              child: Icon(Icons.search),
+              onPressed: () => FlutterBlue.instance
+                  .startScan(timeout: Duration(seconds: 10)),
+            );
+          }
+        },
+      ),
       backgroundColor: aBackgroundColor,
       appBar: AppBar(
         backgroundColor: aBackgroundColor,
@@ -20,31 +48,17 @@ class LandingScreen extends StatelessWidget {
         actions: [
           IconButton(
               icon: Icon(
-                Icons.more_vert,
+                Icons.logout,
                 color: aTextColor,
               ),
-              onPressed: () {})
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                prefs.clear();
+                Get.toNamed('/login');
+              })
         ],
         title: Center(
-          child: SizedBox(
-            width: 212,
-            height: 40,
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8), color: aLightColor),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Icon(Icons.location_on, color: aAccentColor),
-                  Text(
-                    "Surabaya, Jawa Timur",
-                    style: aLocationStyle,
-                  ),
-                  Icon(Icons.expand_more, color: aTextColor),
-                ],
-              ),
-            ),
-          ),
+          child: GPSLocation(),
         ),
       ),
       body: SafeArea(
@@ -74,17 +88,12 @@ class LandingScreen extends StatelessWidget {
                           ),
                           Positioned(
                             top: 143,
-                            child: Text(
-                              'Bagaimana kabarmu?',
-                              style: aHeadingStyle,
-                            ),
+                            child: HaloHero(),
                           ),
                           Positioned(
                             top: 167,
-                            child: Text(
-                              'Semoga sehat ya..',
-                              style: aSubtitleStyle,
-                            ),
+                            child: Text('Tetap lindungi diri..',
+                                style: aSubtitleStyle),
                           )
                         ],
                       ),
@@ -96,11 +105,9 @@ class LandingScreen extends StatelessWidget {
                     child: MultiProvider(
                       providers: [
                         ChangeNotifierProvider<BroadcastBLE>(
-                          create: (context) => BroadcastBLE(),
-                        ),
+                            create: (context) => BroadcastBLE()),
                         ChangeNotifierProvider<ScanBLE>(
-                          create: (context) => ScanBLE(),
-                        ),
+                            create: (context) => ScanBLE()),
                       ],
                       child: Column(
                         children: [
@@ -114,11 +121,13 @@ class LandingScreen extends StatelessWidget {
                                   broadcastBLE.isBroadcasting = value;
                                   scanBLE.isScanning = value;
                                 },
-                                subtitle: Text(broadcastBLE.statusBroadcasting),
+                                subtitle: Text("Kosong"),
                                 title: Text("Aktifkan tracing"),
                               ),
                             ),
                           ),
+                          Container(child: buildResultScan()),
+                          Container(child: buildHiveScans()),
                           Row(
                             children: [
                               BuildMenu(
@@ -163,40 +172,98 @@ class LandingScreen extends StatelessWidget {
               bottom: 20,
               width: MediaQuery.of(context).size.width,
               child: Center(
-                child: Container(
-                  width: 225,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      launch('tel:081212123119');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      elevation: 5,
-                      primary: aAccentColor,
-                      padding:
-                          EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Icon(
-                          Icons.call,
-                          color: aLightColor,
-                        ),
-                        Text(
-                          'Hubungi Call Center',
-                          style: aCTAStyle,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: QuickButton(),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildHiveScans() {
+    // Hive.box('scansresult').clear();
+    return ValueListenableBuilder(
+      valueListenable: Hive.box('scansresult').listenable(),
+      builder: (context, box, _) {
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: box.length,
+          itemBuilder: (context, index) {
+            final scanDatum = box.getAt(index) as ScansResult;
+            print(scanDatum);
+            return ListTile(
+              title: Text(scanDatum.master),
+              subtitle: Column(
+                children: [
+                  Text(scanDatum.slave),
+                  Text(scanDatum.scanDate.toString())
+                ],
+              ),
+              leading: Text("${scanDatum.rssi}"),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildResultScan() {
+    return StreamBuilder<List<ScanResult>>(
+      stream: FlutterBlue.instance.scanResults,
+      initialData: [],
+      builder: (c, scanResult) {
+        return Column(
+          children: scanResult.data.map((s) {
+            return ListTile(
+              title: Text(s.device.id.toString()),
+              subtitle: Text(
+                Uuid.unparse(s.advertisementData.manufacturerData.values
+                    .toList()[0]
+                    .sublist(8)),
+              ),
+              leading: Text(s.rssi.toString()),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class HaloHero extends StatefulWidget {
+  const HaloHero({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _HaloHeroState createState() => _HaloHeroState();
+}
+
+class _HaloHeroState extends State<HaloHero> {
+  SharedPreferences preferences;
+
+  @override
+  void initState() {
+    super.initState();
+    initializePref().whenComplete(() {
+      setState(() {});
+    });
+  }
+
+  Future<void> initializePref() async {
+    this.preferences = await SharedPreferences.getInstance();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      builder: (context, snapshot) {
+        return Text(
+          'Halo ${this.preferences.getString('name')}!',
+          style: aHeadingStyle,
+        );
+      },
     );
   }
 }
