@@ -84,16 +84,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: phoneController,
                                 hintText: 'Nomor telepon',
                                 inputType: TextInputType.phone,
+                                validationError: 'Masukkan nomor telepon',
                               ),
                               InputRoundedField(
                                 controller: passController,
                                 hintText: 'Kata sandi',
                                 inputType: TextInputType.text,
                                 obsecure: true,
+                                validationError: 'Masukkan kata sandi',
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(14),
                                 child: SizedBox(
@@ -175,10 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context: context,
         builder: (context) {
           return Center(
-            child: Container(
-              width: 40,
-              child: CircularProgressIndicator(),
-            ),
+            child: CircularProgressIndicator(),
           );
         });
   }

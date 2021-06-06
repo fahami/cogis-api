@@ -9,7 +9,7 @@ class BuildInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
       width: 300,
       decoration: BoxDecoration(
         color: Colors.white,

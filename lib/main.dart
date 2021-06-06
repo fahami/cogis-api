@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gis_apps/contact.dart';
@@ -23,19 +24,14 @@ void main() async {
     ..registerAdapter(HospitalsAdapter())
     ..registerAdapter(ScansResultAdapter())
     ..registerAdapter(UserAdapter());
-
+  await AndroidAlarmManager.initialize();
   runApp(ChangeNotifierProvider(
     create: (_) => AuthSystem(),
     child: MyApp(),
   ));
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(

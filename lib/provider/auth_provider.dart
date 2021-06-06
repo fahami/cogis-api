@@ -40,8 +40,10 @@ class AuthSystem with ChangeNotifier {
         prefs.setInt('userId', loginUserFromJson(req.body).id);
         prefs.setString('name', loginUserFromJson(req.body).name);
         prefs.setString('phone', phone);
+        print(phone);
         String uuid = phone.substring(0, 4);
         prefs.setString('uuid1', "00000000-0000-$uuid-7263-000000000000");
+        print(prefs.getString('uuid1'));
       } else {
         return null;
       }

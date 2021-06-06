@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/plugin_api.dart';
 import 'package:gis_apps/components/build_list_cta.dart';
 import 'package:gis_apps/components/build_location_indicator.dart';
 import 'package:gis_apps/constants/color.dart';
@@ -7,12 +6,12 @@ import 'package:gis_apps/model/scans.dart';
 import 'package:gis_apps/provider/broadcast_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:latlong/latlong.dart';
-import 'package:location/location.dart';
 import 'package:provider/provider.dart';
-
+import 'package:map/map.dart';
 import 'constants/text.dart';
 import 'provider/scan_provider.dart';
+import 'package:latlng/latlng.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ContactTrace extends StatefulWidget {
   @override
@@ -20,8 +19,34 @@ class ContactTrace extends StatefulWidget {
 }
 
 class _ContactTraceState extends State<ContactTrace> {
-  var location = Location();
-  Map<String, double> userLocation;
+  MapController controller =
+      MapController(location: LatLng(-7.2966855, 112.7509655));
+  Offset _dragStart;
+  double _scaleStart = 1.0;
+  void _onScaleStart(ScaleStartDetails details) {
+    _dragStart = details.focalPoint;
+    _scaleStart = 1.0;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    final scaleDiff = details.scale - _scaleStart;
+    _scaleStart = details.scale;
+
+    if (scaleDiff > 0) {
+      controller.zoom += 0.02;
+      setState(() {});
+    } else if (scaleDiff < 0) {
+      controller.zoom -= 0.02;
+      setState(() {});
+    } else {
+      final now = details.focalPoint;
+      final diff = now - _dragStart;
+      _dragStart = now;
+      controller.drag(diff.dx, diff.dy);
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,18 +55,20 @@ class _ContactTraceState extends State<ContactTrace> {
           children: [
             Container(
               color: Colors.amber,
-              child: FlutterMap(
-                options: MapOptions(center: LatLng(51.5, -0.09), zoom: 12),
-                layers: [
-                  TileLayerOptions(
-                      urlTemplate:
-                          'https://api.tiles.mapbox.com/styles/v1/blacksoul/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-                      additionalOptions: {
-                        'accessToken':
-                            'pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog',
-                        'id': 'ckjoue1fp36wp19oaog2egeqd',
-                      })
-                ],
+              child: GestureDetector(
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                child: Map(
+                  controller: controller,
+                  builder: (context, x, y, z) {
+                    final mapBoxURL =
+                        "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/$z/$x/$y?access_token=pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog";
+                    return CachedNetworkImage(
+                      imageUrl: mapBoxURL,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
               ),
             ),
             DraggableScrollableSheet(
@@ -50,9 +77,9 @@ class _ContactTraceState extends State<ContactTrace> {
               maxChildSize: 0.5,
               builder: (c, s) {
                 return Material(
+                  elevation: 10,
                   color: aLightColor,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  elevation: 10,
                   child: MultiProvider(
                     providers: [
                       ChangeNotifierProvider<BroadcastBLE>(
@@ -77,9 +104,21 @@ class _ContactTraceState extends State<ContactTrace> {
                               ),
                             ),
                           ),
-                          Text(
-                            'Daftar riwayat kontak',
-                            style: aHeadingStyle,
+                          Row(
+                            children: [
+                              Text('Daftar riwayat kontak',
+                                  style: aHeadingStyle),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  final dataku = Hive.box('scansresult')
+                                      .values
+                                      .where((element) => element != null);
+                                  print(dataku);
+                                },
+                                label: Text("Upload"),
+                                icon: Icon(Icons.upload),
+                              )
+                            ],
                           ),
                           Consumer<ScanBLE>(
                             builder: (context, scanBLE, _) =>
@@ -108,8 +147,9 @@ class _ContactTraceState extends State<ContactTrace> {
                                     final itemScan =
                                         box.getAt(index) as ScansResult;
                                     return ListCTA(
-                                        titleCTA: itemScan.master,
-                                        subtitleCTA: itemScan.slave);
+                                      titleCTA: itemScan.master,
+                                      subtitleCTA: itemScan.slave,
+                                    );
                                   },
                                 );
                               },

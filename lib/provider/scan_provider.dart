@@ -34,6 +34,7 @@ class ScanBLE with ChangeNotifier {
                 .advertisementData.manufacturerData.values
                 .toList()[0]
                 .sublist(8));
+            print(r);
             hasilScan.add(ScansResult(
                 uuidBroadcast, parsedSlave, DateTime.now(), r.rssi));
           }

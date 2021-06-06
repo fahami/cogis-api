@@ -8,12 +8,15 @@ class Statistic extends StatefulWidget {
 class _StatisticState extends State<Statistic> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ElevatedButton(
+    return MaterialApp(
+      home: Scaffold(
+        body: ElevatedButton(
           child: Text("Stats"),
           onPressed: () {
             Navigator.pop(context);
-          }),
+          },
+        ),
+      ),
     );
   }
 }

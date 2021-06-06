@@ -7,12 +7,7 @@ import 'package:provider/provider.dart';
 import 'components/build_input_rounded.dart';
 import 'package:get/get.dart';
 
-class RegisterScreen extends StatefulWidget {
-  @override
-  _RegisterScreenState createState() => _RegisterScreenState();
-}
-
-class _RegisterScreenState extends State<RegisterScreen> {
+class RegisterScreen extends StatelessWidget {
   TextEditingController nameController = TextEditingController();
   TextEditingController pwdController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -77,9 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   activeColor: aAccentColor,
                                   value: _checkedVal,
                                   onChanged: (value) {
-                                    setState(() {
-                                      _checkedVal = value;
-                                    });
+                                    _checkedVal = value;
                                   }),
                               Text(
                                 'Saya menyetujui syarat dan ketentuan yang ada',
@@ -96,20 +89,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: TextButton(
                               style: TextButton.styleFrom(
                                   backgroundColor: aAccentColor),
-                              onPressed: () async {
-                                if (_checkedVal == true) {
-                                  var req = await Provider.of<AuthSystem>(
-                                          context,
-                                          listen: false)
-                                      .createUser(
-                                          name: nameController.text,
-                                          phone: phoneController.text,
-                                          pwd: pwdController.text);
-                                  req == null
-                                      ? print('gagal daftar')
-                                      : Get.toNamed('/home');
-                                }
-                              },
+                              onPressed: !_checkedVal
+                                  ? null
+                                  : () async {
+                                      if (_checkedVal == true) {
+                                        var req = await Provider.of<AuthSystem>(
+                                                context,
+                                                listen: false)
+                                            .createUser(
+                                                name: nameController.text,
+                                                phone: phoneController.text,
+                                                pwd: pwdController.text);
+                                        req == null
+                                            ? print('gagal daftar')
+                                            : Get.toNamed('/home');
+                                      }
+                                    },
                               child: Text(
                                 'Daftar',
                                 style: aLightStyle,
