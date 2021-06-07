@@ -1,6 +1,5 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:get/instance_manager.dart';
@@ -255,13 +254,14 @@ class BuildResultScan extends StatelessWidget {
       builder: (c, scanResult) {
         return Column(
           children: scanResult.data.map((s) {
+            List<int> parsed = s.advertisementData.manufacturerData.values
+                .toList()[0]
+                .sublist(8);
             return ListTile(
               title: Text(s.device.id.toString()),
-              subtitle: Text(
-                Uuid.unparse(s.advertisementData.manufacturerData.values
-                    .toList()[0]
-                    .sublist(8)),
-              ),
+              subtitle: Text(parsed.length == 16
+                  ? Uuid.unparse(parsed)
+                  : "Another Device"),
               leading: Text(s.rssi.toString()),
             );
           }).toList(),
@@ -274,7 +274,7 @@ class BuildResultScan extends StatelessWidget {
 class BuildHiveScans extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Hive.box('scansresult').clear();
+    Hive.box('scansresult').clear();
     return ValueListenableBuilder(
       valueListenable: Hive.box('scansresult').listenable(),
       builder: (context, box, _) {

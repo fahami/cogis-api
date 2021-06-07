@@ -29,12 +29,15 @@ class ScanBLE with ChangeNotifier {
       );
       flutterBlue.scanResults.listen((results) {
         for (ScanResult r in results) {
-          if (r.rssi < -20) {
+          List<int> parsed = r.advertisementData.manufacturerData.values
+              .toList()[0]
+              .sublist(8);
+          if (r.rssi < -20 && parsed.length == 16) {
             String parsedSlave = Uuid.unparse(r
                 .advertisementData.manufacturerData.values
                 .toList()[0]
                 .sublist(8));
-            print(r);
+            print(parsedSlave);
             hasilScan.add(ScansResult(
                 uuidBroadcast, parsedSlave, DateTime.now(), r.rssi));
           }
