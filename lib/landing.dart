@@ -11,7 +11,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
-import 'package:uuid/uuid.dart';
 import 'components/build_location_indicator.dart';
 import 'components/build_quick_button.dart';
 import 'components/build_menu.dart';
@@ -19,6 +18,7 @@ import 'provider/broadcast_provider.dart';
 import 'provider/scan_provider.dart';
 import 'constants/color.dart';
 import 'constants/text.dart';
+import 'provider/upload_provider.dart';
 
 class LandingScreen extends StatelessWidget {
   int alarmId = 1;
@@ -35,6 +35,7 @@ class LandingScreen extends StatelessWidget {
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 prefs.clear();
+                Hive.box('scansresult').clear();
                 Get.toNamed('/login');
               })
         ],
@@ -93,36 +94,53 @@ class LandingScreen extends StatelessWidget {
                               builder: (context, scanBLE, _) =>
                                   Consumer<BroadcastBLE>(
                                       builder: (context, broadcastBLE, _) {
-                                broadcastBLE.setupUuid();
                                 scanBLE.setupUuid();
                                 return Column(
                                   children: [
-                                    Switch(
-                                      value:
-                                          backgroundScan.isBroadcastBackground,
-                                      onChanged: (value) async {
-                                        backgroundScan.isBroadcastBackground =
-                                            value;
-                                        print(
-                                            "aktifkan background pada ${DateTime.now()}");
-                                        value
-                                            ? await AndroidAlarmManager.oneShot(
-                                                Duration(seconds: 3),
-                                                0,
-                                                fireAlarm)
-                                            : await AndroidAlarmManager.cancel(
-                                                0);
-                                      },
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            uploadData();
+                                          },
+                                          label: Text("Upload"),
+                                          icon: Icon(Icons.upload),
+                                        ),
+                                        Switch(
+                                          value: backgroundScan
+                                              .isBroadcastBackground,
+                                          onChanged: (value) async {
+                                            backgroundScan
+                                                .isBroadcastBackground = value;
+                                            print(
+                                                "aktifkan background pada ${DateTime.now()}");
+                                            value
+                                                ? await AndroidAlarmManager
+                                                    .oneShot(
+                                                        Duration(seconds: 3),
+                                                        0,
+                                                        fireAlarm)
+                                                : await AndroidAlarmManager
+                                                    .cancel(0);
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    SwitchListTile(
-                                      value: broadcastBLE.isBroadcasting,
-                                      onChanged: (value) {
-                                        broadcastBLE.isBroadcasting = value;
-                                        scanBLE.isScanning = value;
+                                    FutureBuilder(
+                                      future: broadcastBLE.setupUuid(),
+                                      builder: (context, snapshot) {
+                                        return SwitchListTile(
+                                          value: broadcastBLE.isBroadcasting,
+                                          onChanged: (value) {
+                                            broadcastBLE.isBroadcasting = value;
+                                            scanBLE.isScanning = value;
+                                          },
+                                          subtitle: Text(snapshot.data),
+                                          title: Text("Aktifkan tracing"),
+                                        );
                                       },
-                                      subtitle:
-                                          Text(broadcastBLE.uuidBroadcast),
-                                      title: Text("Aktifkan tracing"),
                                     ),
                                   ],
                                 );
@@ -186,35 +204,24 @@ class LandingScreen extends StatelessWidget {
 }
 
 class HaloHero extends StatefulWidget {
-  const HaloHero({
-    Key key,
-  }) : super(key: key);
-
   @override
   _HaloHeroState createState() => _HaloHeroState();
 }
 
 class _HaloHeroState extends State<HaloHero> {
-  SharedPreferences preferences;
-
-  @override
-  void initState() {
-    super.initState();
-    initializePref().whenComplete(() {
-      setState(() {});
-    });
-  }
-
-  Future<void> initializePref() async {
-    this.preferences = await SharedPreferences.getInstance();
+  Future<String> initializePref() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String name = prefs.getString('name');
+    return name;
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
+      future: initializePref(),
       builder: (context, snapshot) {
         return Text(
-          'Halo ${this.preferences.getString('name') ?? "User"}!',
+          'Halo ${snapshot.data ?? "User"}!',
           style: aHeadingStyle,
         );
       },
@@ -254,14 +261,13 @@ class BuildResultScan extends StatelessWidget {
       builder: (c, scanResult) {
         return Column(
           children: scanResult.data.map((s) {
-            List<int> parsed = s.advertisementData.manufacturerData.values
-                .toList()[0]
-                .sublist(8);
+            List<int> parsed =
+                s.advertisementData.manufacturerData.values.toList()[0];
+            print(parsed.length);
             return ListTile(
               title: Text(s.device.id.toString()),
-              subtitle: Text(parsed.length == 16
-                  ? Uuid.unparse(parsed)
-                  : "Another Device"),
+              subtitle:
+                  Text(s.advertisementData.manufacturerData.values.toString()),
               leading: Text(s.rssi.toString()),
             );
           }).toList(),
@@ -271,10 +277,39 @@ class BuildResultScan extends StatelessWidget {
   }
 }
 
+class WatchBoxHive extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return WatchBoxBuilder(
+      box: Hive.box('scansresult'),
+      builder: (context, box) {
+        return box.isEmpty
+            ? LinearProgressIndicator()
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: box.length,
+                itemBuilder: (context, index) {
+                  final scanDatum = box.getAt(index) as ScansResult;
+                  return ListTile(
+                    title: Text(scanDatum.master),
+                    subtitle: Column(
+                      children: [
+                        Text(scanDatum.slave),
+                        Text(scanDatum.scanDate.toString())
+                      ],
+                    ),
+                    leading: Text("${scanDatum.rssi}"),
+                  );
+                },
+              );
+      },
+    );
+  }
+}
+
 class BuildHiveScans extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Hive.box('scansresult').clear();
     return ValueListenableBuilder(
       valueListenable: Hive.box('scansresult').listenable(),
       builder: (context, box, _) {
@@ -285,7 +320,6 @@ class BuildHiveScans extends StatelessWidget {
                 itemCount: box.length,
                 itemBuilder: (context, index) {
                   final scanDatum = box.getAt(index) as ScansResult;
-                  print(scanDatum.master);
                   return ListTile(
                     title: Text(scanDatum.master),
                     subtitle: Column(

@@ -24,20 +24,19 @@ class ScanBLE with ChangeNotifier {
     FlutterBlue flutterBlue = FlutterBlue.instance;
     if (trigger == true) {
       flutterBlue.startScan(
-        scanMode: ScanMode.balanced,
-        allowDuplicates: false,
-      );
+          scanMode: ScanMode.balanced,
+          allowDuplicates: false,
+          timeout: Duration(seconds: 4));
       flutterBlue.scanResults.listen((results) {
         for (ScanResult r in results) {
           List<int> parsed = r.advertisementData.manufacturerData.values
               .toList()[0]
               .sublist(8);
+          print(parsed);
+          print(r.rssi);
           if (r.rssi < -20 && parsed.length == 16) {
-            String parsedSlave = Uuid.unparse(r
-                .advertisementData.manufacturerData.values
-                .toList()[0]
-                .sublist(8));
-            print(parsedSlave);
+            String parsedSlave = Uuid.unparse(parsed);
+
             hasilScan.add(ScansResult(
                 uuidBroadcast, parsedSlave, DateTime.now(), r.rssi));
           }

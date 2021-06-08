@@ -4,6 +4,7 @@ import 'package:gis_apps/components/build_location_indicator.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/model/scans.dart';
 import 'package:gis_apps/provider/broadcast_provider.dart';
+import 'package:gis_apps/provider/upload_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -104,22 +105,7 @@ class _ContactTraceState extends State<ContactTrace> {
                               ),
                             ),
                           ),
-                          Row(
-                            children: [
-                              Text('Daftar riwayat kontak',
-                                  style: aHeadingStyle),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  final dataku = Hive.box('scansresult')
-                                      .values
-                                      .where((element) => element != null);
-                                  print(dataku);
-                                },
-                                label: Text("Upload"),
-                                icon: Icon(Icons.upload),
-                              )
-                            ],
-                          ),
+                          Text('Daftar riwayat kontak', style: aHeadingStyle),
                           Consumer<ScanBLE>(
                             builder: (context, scanBLE, _) =>
                                 Consumer<BroadcastBLE>(

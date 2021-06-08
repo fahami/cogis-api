@@ -8,12 +8,20 @@ class BroadcastBLE with ChangeNotifier {
   String _uuidBroadcast;
   String get uuidBroadcast => _uuidBroadcast;
 
-  void setupUuid() async {
+  Future<String> setupUuid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String uuid =
         prefs.getString('uuid1') ?? '2db88e72-b779-11eb-8529-0242ac130003';
     _uuidBroadcast = uuid;
     notifyListeners();
+    return uuid;
+  }
+
+  void stateBroadcasting() async {
+    BeaconBroadcast beaconBroadcast = BeaconBroadcast();
+    bool isAdvertising = await beaconBroadcast.isAdvertising();
+    _isBroadcasting = isAdvertising;
+    print("broadcasting status is: $isAdvertising");
   }
 
   set isBroadcasting(bool trigger) {
@@ -29,7 +37,8 @@ class BroadcastBLE with ChangeNotifier {
     } else {
       beaconBroadcast.stop();
     }
-    _isBroadcasting = trigger;
+
+    stateBroadcasting();
     notifyListeners();
   }
 
