@@ -4,11 +4,11 @@ import 'package:gis_apps/components/build_location_indicator.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/model/scans.dart';
 import 'package:gis_apps/provider/broadcast_provider.dart';
-import 'package:gis_apps/provider/upload_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:map/map.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/text.dart';
 import 'provider/scan_provider.dart';
 import 'package:latlng/latlng.dart';
@@ -19,9 +19,10 @@ class ContactTrace extends StatefulWidget {
   _ContactTraceState createState() => _ContactTraceState();
 }
 
+LatLng coordinate = LatLng(-7.291152, 112.684962);
+
 class _ContactTraceState extends State<ContactTrace> {
-  MapController controller =
-      MapController(location: LatLng(-7.2966855, 112.7509655));
+  MapController controller = MapController(location: coordinate);
   Offset _dragStart;
   double _scaleStart = 1.0;
   void _onScaleStart(ScaleStartDetails details) {
@@ -48,6 +49,20 @@ class _ContactTraceState extends State<ContactTrace> {
     }
   }
 
+  Future getLocation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final lat = double.parse(prefs.getString('latitude'));
+    final lng = double.parse(prefs.getString('longitude'));
+    coordinate = LatLng(lat, lng);
+    return coordinate;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,19 +71,22 @@ class _ContactTraceState extends State<ContactTrace> {
           children: [
             Container(
               color: Colors.amber,
-              child: GestureDetector(
-                onScaleStart: _onScaleStart,
-                onScaleUpdate: _onScaleUpdate,
-                child: Map(
-                  controller: controller,
-                  builder: (context, x, y, z) {
-                    final mapBoxURL =
-                        "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/$z/$x/$y?access_token=pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog";
-                    return CachedNetworkImage(
-                      imageUrl: mapBoxURL,
-                      fit: BoxFit.cover,
-                    );
-                  },
+              child: FutureBuilder(
+                future: getLocation(),
+                builder: (context, snapshot) => GestureDetector(
+                  onScaleStart: _onScaleStart,
+                  onScaleUpdate: _onScaleUpdate,
+                  child: Map(
+                    controller: controller,
+                    builder: (context, x, y, z) {
+                      final mapBoxURL =
+                          "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/$z/$x/$y?access_token=pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog";
+                      return CachedNetworkImage(
+                        imageUrl: mapBoxURL,
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -106,21 +124,6 @@ class _ContactTraceState extends State<ContactTrace> {
                             ),
                           ),
                           Text('Daftar riwayat kontak', style: aHeadingStyle),
-                          Consumer<ScanBLE>(
-                            builder: (context, scanBLE, _) =>
-                                Consumer<BroadcastBLE>(
-                              builder: (context, broadcastBLE, _) =>
-                                  SwitchListTile(
-                                value: broadcastBLE.isBroadcasting,
-                                onChanged: (value) {
-                                  broadcastBLE.isBroadcasting = value;
-                                  scanBLE.isScanning = value;
-                                },
-                                subtitle: Text(broadcastBLE.statusBroadcasting),
-                                title: Text("Aktifkan tracing"),
-                              ),
-                            ),
-                          ),
                           Expanded(
                             child: ValueListenableBuilder(
                               valueListenable:

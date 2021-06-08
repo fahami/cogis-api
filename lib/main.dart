@@ -24,6 +24,7 @@ void main() async {
     ..registerAdapter(HospitalsAdapter())
     ..registerAdapter(ScansResultAdapter())
     ..registerAdapter(UserAdapter());
+  await Hive.openBox('hospitals');
   await AndroidAlarmManager.initialize();
   runApp(ChangeNotifierProvider(
     create: (_) => AuthSystem(),
@@ -51,8 +52,6 @@ class MyApp extends StatelessWidget {
           }
         },
       ),
-      unknownRoute: GetPage(name: '/notfound', page: () => LandingScreen()),
-      initialRoute: '/',
       getPages: [
         GetPage(name: '/register', page: () => RegisterScreen()),
         GetPage(name: '/login', page: () => LoginScreen()),

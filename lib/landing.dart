@@ -36,7 +36,7 @@ class LandingScreen extends StatelessWidget {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 prefs.clear();
                 Hive.box('scansresult').clear();
-                Get.toNamed('/login');
+                Get.offNamed('/login');
               })
         ],
         title: Center(child: GPSLocation()),
@@ -147,8 +147,6 @@ class LandingScreen extends StatelessWidget {
                               }),
                             ),
                           ),
-                          Container(child: BuildResultScan()),
-                          Container(child: BuildHiveScans()),
                           Row(
                             children: [
                               BuildMenu(

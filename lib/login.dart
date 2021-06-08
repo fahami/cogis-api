@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/constants/text.dart';
+import 'package:gis_apps/landing.dart';
 import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:gis_apps/register.dart';
 import 'package:provider/provider.dart';
@@ -29,8 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String apiToken = prefs.getString('token');
-    print(apiToken);
-    return apiToken == null ? Get.toNamed('/login') : Get.toNamed('/home');
+    print(apiToken ?? "Belum ada token");
+    return apiToken == null ? Get.offNamed('/login') : Get.offNamed('/home');
   }
 
   @override
@@ -120,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         );
                                         if (result != null) {
                                           Navigator.of(context).pop();
-                                          Get.toNamed('/home');
+                                          Get.offNamed('/home');
                                         } else {
                                           Navigator.of(context).pop();
                                           return _buildShowErrorDialog(context,
