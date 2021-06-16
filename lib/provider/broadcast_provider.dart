@@ -33,13 +33,26 @@ class BroadcastBLE with ChangeNotifier {
           .setMajorId(1)
           .setMinorId(100)
           .setManufacturerId(0x0118)
-          .setExtraData([00112]).start();
+          .setAdvertiseMode(AdvertiseMode.lowPower)
+          .start();
     } else {
       beaconBroadcast.stop();
     }
 
     stateBroadcasting();
     notifyListeners();
+  }
+
+  Future<BeaconStatus> get supportBroadcasting async {
+    BeaconBroadcast beaconBroadcast = BeaconBroadcast();
+    BeaconStatus _isTransmissionSupported;
+    beaconBroadcast
+        .checkTransmissionSupported()
+        .then((isTransmissionSupported) {
+      return _isTransmissionSupported = isTransmissionSupported;
+    });
+    notifyListeners();
+    return _isTransmissionSupported;
   }
 
   String get statusBroadcasting => (_isBroadcasting)

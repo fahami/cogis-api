@@ -3,7 +3,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/constants/text.dart';
-import 'package:latlng/latlng.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GPSLocation extends StatefulWidget {
@@ -60,6 +59,7 @@ class _GPSLocationState extends State<GPSLocation> {
             forceAndroidLocationManager: true)
         .then((Position position) {
       setState(() {
+        print("dapat lokasi di position $position");
         _currentPosition = position;
         prefs
           ..setString('latitude', _currentPosition.latitude.toString())

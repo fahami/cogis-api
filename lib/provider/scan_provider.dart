@@ -32,11 +32,8 @@ class ScanBLE with ChangeNotifier {
           List<int> parsed = r.advertisementData.manufacturerData.values
               .toList()[0]
               .sublist(8);
-          print(parsed);
-          print(r.rssi);
           if (r.rssi < -20 && parsed.length == 16) {
             String parsedSlave = Uuid.unparse(parsed);
-
             hasilScan.add(ScansResult(
                 uuidBroadcast, parsedSlave, DateTime.now(), r.rssi));
           }

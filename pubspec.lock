@@ -244,6 +244,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_ble_lib:
+    dependency: "direct main"
+    description:
+      name: flutter_ble_lib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.2"
   flutter_blue:
     dependency: "direct main"
     description:
@@ -548,6 +555,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.11.0"
+  permission_handler:
+    dependency: "direct main"
+    description:
+      name: permission_handler
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "8.1.0"
+  permission_handler_platform_interface:
+    dependency: transitive
+    description:
+      name: permission_handler_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.6.0"
   petitparser:
     dependency: transitive
     description:

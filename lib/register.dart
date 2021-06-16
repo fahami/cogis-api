@@ -7,11 +7,20 @@ import 'package:provider/provider.dart';
 import 'components/build_input_rounded.dart';
 import 'package:get/get.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController nameController = TextEditingController();
+
   TextEditingController pwdController = TextEditingController();
+
   TextEditingController phoneController = TextEditingController();
+
   bool _checkedVal = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +81,9 @@ class RegisterScreen extends StatelessWidget {
                                   activeColor: aAccentColor,
                                   value: _checkedVal,
                                   onChanged: (value) {
-                                    _checkedVal = value;
+                                    setState(() {
+                                      _checkedVal = value;
+                                    });
                                   }),
                               Text(
                                 'Saya menyetujui syarat dan ketentuan yang ada',
@@ -89,7 +100,7 @@ class RegisterScreen extends StatelessWidget {
                             child: TextButton(
                               style: TextButton.styleFrom(
                                   backgroundColor: aAccentColor),
-                              onPressed: !_checkedVal
+                              onPressed: _checkedVal == false
                                   ? null
                                   : () async {
                                       if (_checkedVal == true) {
@@ -102,7 +113,7 @@ class RegisterScreen extends StatelessWidget {
                                                 pwd: pwdController.text);
                                         req == null
                                             ? print('gagal daftar')
-                                            : Get.toNamed('/home');
+                                            : Get.offNamed('/home');
                                       }
                                     },
                               child: Text(

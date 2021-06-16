@@ -5,28 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Black",
+            "name": "Pixel",
             "request": "launch",
             "type": "dart",
-            "deviceId": "192.168.18.115:5555"
+            // "deviceId": "emulator-5554"
         },
-        {
-            "name": "Pink",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "192.168.18.117:5555"
-        },
-        {
-            "name": "Green",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "192.168.18.116:5555"
-        }
+        // {
+        //     "name": "Black",
+        //     "request": "launch",
+        //     "type": "dart",
+        //     "deviceId": "192.168.18.115:5555"
+        // },
+        // {
+        //     "name": "Pink",
+        //     "request": "launch",
+        //     "type": "dart",
+        //     "deviceId": "192.168.1.9:5555"
+        // },
+        // {
+        //     "name": "Green",
+        //     "request": "launch",
+        //     "type": "dart",
+        //     "deviceId": "192.168.1.27:5555"
+        // }
     ],
-    "compounds": [
-        {
-            "name": "Compound",
-            "configurations": ["Pink", "Black"]
-        }
-    ]
+    // "compounds": [
+    //     {
+    //         "name": "Compound",
+    //         "configurations": ["Pink", "Black"]
+    //     }
+    // ]
 }

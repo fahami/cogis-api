@@ -1,6 +1,8 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ble_lib/flutter_ble_lib.dart' as fBle;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:get/instance_manager.dart';
 import 'package:get/state_manager.dart';
@@ -11,6 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
 import 'components/build_location_indicator.dart';
 import 'components/build_quick_button.dart';
 import 'components/build_menu.dart';
@@ -108,6 +111,13 @@ class LandingScreen extends StatelessWidget {
                                           label: Text("Upload"),
                                           icon: Icon(Icons.upload),
                                         ),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            fBle.BleManager().destroyClient();
+                                          },
+                                          label: Text("Stop"),
+                                          icon: Icon(Icons.stop),
+                                        ),
                                         Switch(
                                           value: backgroundScan
                                               .isBroadcastBackground,
@@ -116,31 +126,27 @@ class LandingScreen extends StatelessWidget {
                                                 .isBroadcastBackground = value;
                                             print(
                                                 "aktifkan background pada ${DateTime.now()}");
-                                            value
-                                                ? await AndroidAlarmManager
-                                                    .oneShot(
-                                                        Duration(seconds: 3),
-                                                        0,
-                                                        fireAlarm)
-                                                : await AndroidAlarmManager
-                                                    .cancel(0);
+                                            fireAlarm();
+                                            // value
+                                            //     ? await AndroidAlarmManager
+                                            //         .periodic(
+                                            //             Duration(seconds: 60),
+                                            //             0,
+                                            //             fireAlarm)
+                                            //     : await AndroidAlarmManager
+                                            //         .cancel(0);
                                           },
                                         ),
                                       ],
                                     ),
-                                    FutureBuilder(
-                                      future: broadcastBLE.setupUuid(),
-                                      builder: (context, snapshot) {
-                                        return SwitchListTile(
-                                          value: broadcastBLE.isBroadcasting,
-                                          onChanged: (value) {
-                                            broadcastBLE.isBroadcasting = value;
-                                            scanBLE.isScanning = value;
-                                          },
-                                          subtitle: Text(snapshot.data),
-                                          title: Text("Aktifkan tracing"),
-                                        );
+                                    SwitchListTile(
+                                      value: broadcastBLE.isBroadcasting,
+                                      onChanged: (value) {
+                                        broadcastBLE.isBroadcasting = value;
+                                        scanBLE.isScanning = value;
                                       },
+                                      subtitle: Text('Lindungi diri'),
+                                      title: Text("Aktifkan tracing"),
                                     ),
                                   ],
                                 );
@@ -201,53 +207,14 @@ class LandingScreen extends StatelessWidget {
   }
 }
 
-class HaloHero extends StatefulWidget {
-  @override
-  _HaloHeroState createState() => _HaloHeroState();
-}
-
-class _HaloHeroState extends State<HaloHero> {
-  Future<String> initializePref() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String name = prefs.getString('name');
-    return name;
-  }
-
+class HaloHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: initializePref(),
-      builder: (context, snapshot) {
-        return Text(
-          'Halo ${snapshot.data ?? "User"}!',
-          style: aHeadingStyle,
-        );
-      },
+    return Text(
+      'Selamat datang!',
+      style: aHeadingStyle,
     );
   }
-}
-
-void fireAlarm() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-
-  FlutterBlue flutterBlue = FlutterBlue.instance;
-  flutterBlue.startScan(
-    scanMode: ScanMode.balanced,
-    allowDuplicates: false,
-  );
-  try {
-    flutterBlue.scanResults.listen((results) {
-      for (ScanResult r in results) {
-        // prefs.setString('scan1', r.advertisementData.manufacturerData.toString());
-        print(r);
-      }
-    });
-  } catch (e) {
-    print(e);
-  }
-
-  print("Fired at ${DateTime.now()}");
-  print(prefs.getString('scan1'));
 }
 
 class BuildResultScan extends StatelessWidget {
@@ -332,5 +299,33 @@ class BuildHiveScans extends StatelessWidget {
               );
       },
     );
+  }
+}
+
+void fireAlarm() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var appDir = await pathPro.getApplicationDocumentsDirectory();
+  Hive.init(appDir.path);
+  await Hive.openBox('scansresult');
+  var hasilScan = Hive.box("scansresult");
+  var uuidBroadcast = prefs.getString('uuid1');
+  fBle.BleManager bleManager = fBle.BleManager();
+  await bleManager.createClient();
+  try {
+    print("Fired at ${DateTime.now()}");
+    bleManager
+        .startPeripheralScan(
+            allowDuplicates: false, scanMode: fBle.ScanMode.lowLatency)
+        .listen((scanResult) {
+      List parsed = scanResult.advertisementData.manufacturerData;
+      if (parsed.length == 26) {
+        final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
+        hasilScan.add(ScansResult(
+            "${DateTime.now()}", parsedSlave, DateTime.now(), scanResult.rssi));
+      }
+      bleManager.stopPeripheralScan();
+    });
+  } catch (e) {
+    print(e);
   }
 }

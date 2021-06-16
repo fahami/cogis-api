@@ -1,9 +1,9 @@
+import 'package:permission_handler/permission_handler.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 import 'package:gis_apps/constants/color.dart';
 import 'package:gis_apps/constants/text.dart';
-import 'package:gis_apps/landing.dart';
 import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:gis_apps/register.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     autoLogin();
+    askPermission();
   }
 
   void autoLogin() async {
@@ -32,6 +33,17 @@ class _LoginScreenState extends State<LoginScreen> {
     String apiToken = prefs.getString('token');
     print(apiToken ?? "Belum ada token");
     return apiToken == null ? Get.offNamed('/login') : Get.offNamed('/home');
+  }
+
+  void askPermission() async {
+    var status = await Permission.location.status;
+    if (status.isDenied) {
+      print('Izin GPS ditolak');
+      Map<Permission, PermissionStatus> statuses =
+          await [Permission.location, Permission.bluetooth].request();
+      print(statuses[Permission.location]);
+      print(statuses[Permission.bluetooth]);
+    }
   }
 
   @override
