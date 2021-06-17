@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/plugin_api.dart';
+import 'package:flutter_map_location/flutter_map_location.dart';
 import 'package:gis_apps/components/build_list_cta.dart';
 import 'package:gis_apps/components/build_location_indicator.dart';
 import 'package:gis_apps/constants/color.dart';
@@ -7,12 +9,12 @@ import 'package:gis_apps/provider/broadcast_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:map/map.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/text.dart';
 import 'provider/scan_provider.dart';
-import 'package:latlng/latlng.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 class ContactTrace extends StatefulWidget {
   @override
@@ -22,34 +24,8 @@ class ContactTrace extends StatefulWidget {
 LatLng coordinate = LatLng(-7.291152, 112.684962);
 
 class _ContactTraceState extends State<ContactTrace> {
-  MapController controller = MapController(location: coordinate);
-  Offset _dragStart;
-  double _scaleStart = 1.0;
-  void _onScaleStart(ScaleStartDetails details) {
-    _dragStart = details.focalPoint;
-    _scaleStart = 1.0;
-  }
-
-  void _onScaleUpdate(ScaleUpdateDetails details) {
-    final scaleDiff = details.scale - _scaleStart;
-    _scaleStart = details.scale;
-
-    if (scaleDiff > 0) {
-      controller.zoom += 0.02;
-      setState(() {});
-    } else if (scaleDiff < 0) {
-      controller.zoom -= 0.02;
-      setState(() {});
-    } else {
-      final now = details.focalPoint;
-      final diff = now - _dragStart;
-      _dragStart = now;
-      controller.drag(diff.dx, diff.dy);
-      setState(() {});
-    }
-  }
-
-  Future getLocation() async {
+  final MapController mapController = MapController();
+  Future<LatLng> getLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final lat = double.parse(prefs.getString('latitude'));
     final lng = double.parse(prefs.getString('longitude'));
@@ -72,23 +48,47 @@ class _ContactTraceState extends State<ContactTrace> {
             Container(
               color: Colors.amber,
               child: FutureBuilder(
-                future: getLocation(),
-                builder: (context, snapshot) => GestureDetector(
-                  onScaleStart: _onScaleStart,
-                  onScaleUpdate: _onScaleUpdate,
-                  child: Map(
-                    controller: controller,
-                    builder: (context, x, y, z) {
-                      final mapBoxURL =
-                          "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/$z/$x/$y?access_token=pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog";
-                      return CachedNetworkImage(
-                        imageUrl: mapBoxURL,
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  ),
-                ),
-              ),
+                  future: getLocation(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Text("Sedang error");
+                      } else {
+                        return FlutterMap(
+                          mapController: mapController,
+                          options: MapOptions(
+                              center: snapshot.data,
+                              zoom: 13,
+                              plugins: [LocationPlugin()]),
+                          layers: [
+                            TileLayerOptions(
+                              urlTemplate:
+                                  "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYmxhY2tzb3VsIiwiYSI6ImNqbHd4NGVxMTA0Z3ozcG10dmFkdWI5MTkifQ.nC02ckrcy3bHMiSrQRvSog",
+                            ),
+                          ],
+                          nonRotatedLayers: <LayerOptions>[
+                            // USAGE NOTE 3: Add the options for the plugin
+                            LocationOptions(
+                              locationButton(),
+                              updateInterval: Duration(seconds: 5),
+                              onLocationUpdate: (LatLngData ld) {
+                                print(
+                                    'Location updated: ${ld?.location} (accuracy: ${ld?.accuracy})');
+                              },
+                              onLocationRequested: (LatLngData ld) {
+                                if (ld == null) {
+                                  return;
+                                }
+                                mapController.move(ld.location, 16.0);
+                              },
+                            ),
+                          ],
+                        );
+                      }
+                    } else {
+                      return CircularProgressIndicator();
+                    }
+                  }),
             ),
             DraggableScrollableSheet(
               initialChildSize: 0.3,
@@ -156,5 +156,40 @@ class _ContactTraceState extends State<ContactTrace> {
         ),
       ),
     );
+  }
+
+  LocationButtonBuilder locationButton() {
+    return (BuildContext context, ValueNotifier<LocationServiceStatus> status,
+        Function onPressed) {
+      return Container(
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16.0, right: 16.0),
+            child: FloatingActionButton(
+                child: ValueListenableBuilder<LocationServiceStatus>(
+                    valueListenable: status,
+                    builder: (BuildContext context, LocationServiceStatus value,
+                        Widget child) {
+                      switch (value) {
+                        case LocationServiceStatus.disabled:
+                        case LocationServiceStatus.permissionDenied:
+                        case LocationServiceStatus.unsubscribed:
+                          return const Icon(
+                            Icons.location_disabled,
+                            color: Colors.white,
+                          );
+                        default:
+                          return const Icon(
+                            Icons.location_searching,
+                            color: Colors.white,
+                          );
+                      }
+                    }),
+                onPressed: () => onPressed()),
+          ),
+        ),
+      );
+    };
   }
 }

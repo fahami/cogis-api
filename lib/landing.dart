@@ -1,4 +1,5 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
@@ -119,22 +120,19 @@ class LandingScreen extends StatelessWidget {
                                           icon: Icon(Icons.stop),
                                         ),
                                         Switch(
-                                          value: backgroundScan
-                                              .isBroadcastBackground,
+                                          value: backgroundScan.isScanning,
                                           onChanged: (value) async {
-                                            backgroundScan
-                                                .isBroadcastBackground = value;
-                                            print(
-                                                "aktifkan background pada ${DateTime.now()}");
-                                            fireAlarm();
-                                            // value
-                                            //     ? await AndroidAlarmManager
-                                            //         .periodic(
-                                            //             Duration(seconds: 60),
-                                            //             0,
-                                            //             fireAlarm)
-                                            //     : await AndroidAlarmManager
-                                            //         .cancel(0);
+                                            backgroundScan.isScanning = value;
+                                            if (value) {
+                                              await AndroidAlarmManager
+                                                  .periodic(
+                                                      Duration(seconds: 60),
+                                                      0,
+                                                      fireAlarm);
+                                            } else {
+                                              await AndroidAlarmManager.cancel(
+                                                  0);
+                                            }
                                           },
                                         ),
                                       ],
@@ -309,17 +307,25 @@ void fireAlarm() async {
   await Hive.openBox('scansresult');
   var hasilScan = Hive.box("scansresult");
   var uuidBroadcast = prefs.getString('uuid1');
+
   fBle.BleManager bleManager = fBle.BleManager();
   await bleManager.createClient();
+
   try {
     print("Fired at ${DateTime.now()}");
     bleManager
-        .startPeripheralScan(
-            allowDuplicates: false, scanMode: fBle.ScanMode.lowLatency)
+        .startPeripheralScan(scanMode: fBle.ScanMode.balanced)
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
+      print(scanResult);
+      // final parsedSlave = Uuid.unparse(parsed.sublist(8));
+      // print(parsedSlave);
+      var parsedList =
+          parsed.length == 29 ? parsed.toList().sublist(8) : parsed.toList();
+      print(parsedList);
       if (parsed.length == 26) {
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
+        print(parsedSlave);
         hasilScan.add(ScansResult(
             "${DateTime.now()}", parsedSlave, DateTime.now(), scanResult.rssi));
       }
