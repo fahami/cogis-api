@@ -11,9 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/text.dart';
-import 'provider/scan_provider.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
 
 class ContactTrace extends StatefulWidget {
@@ -104,9 +102,6 @@ class _ContactTraceState extends State<ContactTrace> {
                       ChangeNotifierProvider<BroadcastBLE>(
                         create: (context) => BroadcastBLE(),
                       ),
-                      ChangeNotifierProvider<ScanBLE>(
-                        create: (context) => ScanBLE(),
-                      ),
                     ],
                     child: Container(
                       padding: EdgeInsets.only(top: 9),
@@ -128,13 +123,14 @@ class _ContactTraceState extends State<ContactTrace> {
                             child: ValueListenableBuilder(
                               valueListenable:
                                   Hive.box('scansresult').listenable(),
-                              builder: (context, box, child) {
+                              builder: (context, box, _) {
                                 return ListView.builder(
                                   controller: s,
                                   itemCount: box.length,
                                   itemBuilder: (context, index) {
                                     final itemScan =
                                         box.getAt(index) as ScansResult;
+                                    print(itemScan.scanDate);
                                     return ListCTA(
                                       titleCTA: itemScan.master,
                                       subtitleCTA: itemScan.slave,

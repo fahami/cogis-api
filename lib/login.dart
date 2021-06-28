@@ -1,3 +1,5 @@
+import 'package:beacon_broadcast/beacon_broadcast.dart';
+import 'package:gis_apps/provider/broadcast_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String apiToken = prefs.getString('token');
     print(apiToken ?? "Belum ada token");
+    print(prefs.getString('uuid1'));
+
     return apiToken == null ? Get.offNamed('/login') : Get.offNamed('/home');
   }
 

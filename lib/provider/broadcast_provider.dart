@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
+import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BroadcastBLE with ChangeNotifier {
@@ -10,35 +11,42 @@ class BroadcastBLE with ChangeNotifier {
 
   Future<String> setupUuid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String uuid =
-        prefs.getString('uuid1') ?? '2db88e72-b779-11eb-8529-0242ac130003';
-    _uuidBroadcast = uuid;
-    notifyListeners();
-    return uuid;
+    String _uuid = prefs.getString('uuid1');
+    _uuidBroadcast = _uuid;
+    print('uuid sekarang: $_uuidBroadcast');
+    return _uuidBroadcast;
   }
 
-  void stateBroadcasting() async {
+  Future<bool> stateBroadcasting() async {
     BeaconBroadcast beaconBroadcast = BeaconBroadcast();
     bool isAdvertising = await beaconBroadcast.isAdvertising();
     _isBroadcasting = isAdvertising;
-    print("broadcasting status is: $isAdvertising");
+    notifyListeners();
+
+    return _isBroadcasting;
   }
 
   set isBroadcasting(bool trigger) {
-    setupUuid();
     BeaconBroadcast beaconBroadcast = BeaconBroadcast();
-    if (trigger == true) {
-      beaconBroadcast
-          .setUUID(_uuidBroadcast)
-          .setMajorId(1)
-          .setMinorId(100)
-          .setManufacturerId(0x0118)
-          .setAdvertiseMode(AdvertiseMode.lowPower)
-          .start();
-    } else {
-      beaconBroadcast.stop();
+    try {
+      if (trigger == true) {
+        setupUuid();
+        Future.delayed(Duration(seconds: 2)).then((_) {
+          print("UUID Dieksekusi: $_uuidBroadcast");
+          beaconBroadcast
+              .setUUID(_uuidBroadcast)
+              .setMajorId(1)
+              .setMinorId(100)
+              .setManufacturerId(0x0118)
+              .setAdvertiseMode(AdvertiseMode.balanced)
+              .start();
+        });
+      } else {
+        beaconBroadcast.stop();
+      }
+    } catch (e) {
+      print(e);
     }
-
     stateBroadcasting();
     notifyListeners();
   }

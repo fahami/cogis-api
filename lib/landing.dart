@@ -1,25 +1,21 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
-import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_lib/flutter_ble_lib.dart' as fBle;
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:get/instance_manager.dart';
 import 'package:get/state_manager.dart';
 import 'package:gis_apps/model/scans.dart';
-import 'package:gis_apps/provider/background_scan.dart';
 import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import 'components/build_location_indicator.dart';
-import 'components/build_quick_button.dart';
 import 'components/build_menu.dart';
+import 'components/build_quick_button.dart';
+import 'provider/background_scan.dart';
 import 'provider/broadcast_provider.dart';
-import 'provider/scan_provider.dart';
 import 'constants/color.dart';
 import 'constants/text.dart';
 import 'provider/upload_provider.dart';
@@ -33,15 +29,22 @@ class LandingScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: aBackgroundColor,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.info, color: aTextColor),
+          onPressed: () {
+            Get.offNamed('/hospital');
+          },
+        ),
         actions: [
           IconButton(
-              icon: Icon(Icons.logout, color: aTextColor),
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                prefs.clear();
-                Hive.box('scansresult').clear();
-                Get.offNamed('/login');
-              })
+            icon: Icon(Icons.logout, color: aTextColor),
+            onPressed: () async {
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              prefs.clear();
+              Hive.box('scansresult').clear();
+              Get.offNamed('/login');
+            },
+          ),
         ],
         title: Center(child: GPSLocation()),
       ),
@@ -68,7 +71,12 @@ class LandingScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Positioned(top: 143, child: HaloHero()),
+                          Positioned(
+                              top: 143,
+                              child: Text(
+                                'Selamat datang!',
+                                style: aHeadingStyle,
+                              )),
                           Positioned(
                             top: 167,
                             child: Text('Tetap lindungi diri..',
@@ -85,8 +93,6 @@ class LandingScreen extends StatelessWidget {
                       providers: [
                         ChangeNotifierProvider<BroadcastBLE>(
                             create: (context) => BroadcastBLE()),
-                        ChangeNotifierProvider<ScanBLE>(
-                            create: (context) => ScanBLE()),
                         ChangeNotifierProvider<BackgroundScan>(
                             create: (context) => BackgroundScan()),
                       ],
@@ -94,62 +100,48 @@ class LandingScreen extends StatelessWidget {
                         children: [
                           Consumer<BackgroundScan>(
                             builder: (context, backgroundScan, _) =>
-                                Consumer<ScanBLE>(
-                              builder: (context, scanBLE, _) =>
-                                  Consumer<BroadcastBLE>(
-                                      builder: (context, broadcastBLE, _) {
-                                scanBLE.setupUuid();
-                                return Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        ElevatedButton.icon(
-                                          onPressed: () {
-                                            uploadData();
-                                          },
-                                          label: Text("Upload"),
-                                          icon: Icon(Icons.upload),
-                                        ),
-                                        ElevatedButton.icon(
-                                          onPressed: () {
-                                            fBle.BleManager().destroyClient();
-                                          },
-                                          label: Text("Stop"),
-                                          icon: Icon(Icons.stop),
-                                        ),
-                                        Switch(
-                                          value: backgroundScan.isScanning,
-                                          onChanged: (value) async {
-                                            backgroundScan.isScanning = value;
-                                            if (value) {
-                                              await AndroidAlarmManager
-                                                  .periodic(
-                                                      Duration(seconds: 60),
-                                                      0,
-                                                      fireAlarm);
-                                            } else {
-                                              await AndroidAlarmManager.cancel(
-                                                  0);
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    SwitchListTile(
-                                      value: broadcastBLE.isBroadcasting,
-                                      onChanged: (value) {
-                                        broadcastBLE.isBroadcasting = value;
-                                        scanBLE.isScanning = value;
-                                      },
-                                      subtitle: Text('Lindungi diri'),
-                                      title: Text("Aktifkan tracing"),
-                                    ),
-                                  ],
-                                );
-                              }),
-                            ),
+                                Consumer<BroadcastBLE>(
+                                    builder: (context, broadcastBLE, _) {
+                              broadcastBLE.stateBroadcasting();
+                              return Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          uploadData();
+                                        },
+                                        label: Text("Upload"),
+                                        icon: Icon(Icons.upload),
+                                      ),
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          fBle.BleManager().destroyClient();
+                                        },
+                                        label: Text("Stop BLE"),
+                                        icon: Icon(Icons.stop),
+                                      ),
+                                    ],
+                                  ),
+                                  SwitchListTile(
+                                    value: broadcastBLE.isBroadcasting,
+                                    onChanged: (value) async {
+                                      broadcastBLE.isBroadcasting = value;
+                                      value
+                                          ? await AndroidAlarmManager.oneShot(
+                                              Duration(seconds: 2),
+                                              0,
+                                              fireAlarm)
+                                          : await AndroidAlarmManager.cancel(0);
+                                    },
+                                    subtitle: Text('Lindungi diri'),
+                                    title: Text("Aktifkan tracing"),
+                                  ),
+                                ],
+                              );
+                            }),
                           ),
                           Row(
                             children: [
@@ -205,108 +197,13 @@ class LandingScreen extends StatelessWidget {
   }
 }
 
-class HaloHero extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'Selamat datang!',
-      style: aHeadingStyle,
-    );
-  }
-}
-
-class BuildResultScan extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<ScanResult>>(
-      stream: FlutterBlue.instance.scanResults,
-      initialData: [],
-      builder: (c, scanResult) {
-        return Column(
-          children: scanResult.data.map((s) {
-            List<int> parsed =
-                s.advertisementData.manufacturerData.values.toList()[0];
-            print(parsed.length);
-            return ListTile(
-              title: Text(s.device.id.toString()),
-              subtitle:
-                  Text(s.advertisementData.manufacturerData.values.toString()),
-              leading: Text(s.rssi.toString()),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-}
-
-class WatchBoxHive extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return WatchBoxBuilder(
-      box: Hive.box('scansresult'),
-      builder: (context, box) {
-        return box.isEmpty
-            ? LinearProgressIndicator()
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: box.length,
-                itemBuilder: (context, index) {
-                  final scanDatum = box.getAt(index) as ScansResult;
-                  return ListTile(
-                    title: Text(scanDatum.master),
-                    subtitle: Column(
-                      children: [
-                        Text(scanDatum.slave),
-                        Text(scanDatum.scanDate.toString())
-                      ],
-                    ),
-                    leading: Text("${scanDatum.rssi}"),
-                  );
-                },
-              );
-      },
-    );
-  }
-}
-
-class BuildHiveScans extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: Hive.box('scansresult').listenable(),
-      builder: (context, box, _) {
-        return box.isEmpty
-            ? LinearProgressIndicator()
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: box.length,
-                itemBuilder: (context, index) {
-                  final scanDatum = box.getAt(index) as ScansResult;
-                  return ListTile(
-                    title: Text(scanDatum.master),
-                    subtitle: Column(
-                      children: [
-                        Text(scanDatum.slave),
-                        Text(scanDatum.scanDate.toString())
-                      ],
-                    ),
-                    leading: Text("${scanDatum.rssi}"),
-                  );
-                },
-              );
-      },
-    );
-  }
-}
-
 void fireAlarm() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var appDir = await pathPro.getApplicationDocumentsDirectory();
   Hive.init(appDir.path);
   await Hive.openBox('scansresult');
-  var hasilScan = Hive.box("scansresult");
-  var uuidBroadcast = prefs.getString('uuid1');
+  final hasilScan = Hive.box("scansresult");
+  String uuidBroadcast = prefs.getString('uuid1');
 
   fBle.BleManager bleManager = fBle.BleManager();
   await bleManager.createClient();
@@ -314,21 +211,22 @@ void fireAlarm() async {
   try {
     print("Fired at ${DateTime.now()}");
     bleManager
-        .startPeripheralScan(scanMode: fBle.ScanMode.balanced)
+        .startPeripheralScan(
+      scanMode: fBle.ScanMode.lowLatency,
+    )
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
-      print(scanResult);
-      // final parsedSlave = Uuid.unparse(parsed.sublist(8));
-      // print(parsedSlave);
+      print('Data mentah: ' + parsed.toString());
       var parsedList =
           parsed.length == 29 ? parsed.toList().sublist(8) : parsed.toList();
-      print(parsedList);
       if (parsed.length == 26) {
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         print(parsedSlave);
         hasilScan.add(ScansResult(
-            "${DateTime.now()}", parsedSlave, DateTime.now(), scanResult.rssi));
+            uuidBroadcast, parsedSlave, DateTime.now(), scanResult.rssi));
       }
+      // Future.delayed(Duration(seconds: 2))
+      //     .then((value) => bleManager.stopPeripheralScan());
       bleManager.stopPeripheralScan();
     });
   } catch (e) {

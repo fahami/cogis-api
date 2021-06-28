@@ -3,6 +3,8 @@ import 'package:gis_apps/model/login_user.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+var uuid;
+
 class AuthSystem with ChangeNotifier {
   var currentUser;
 
@@ -40,9 +42,12 @@ class AuthSystem with ChangeNotifier {
         prefs.setInt('userId', loginUserFromJson(req.body).id);
         prefs.setString('name', loginUserFromJson(req.body).name);
         prefs.setString('phone', phone);
-        String uuid = phone.substring(0, 4);
+        String part1 = phone.substring(0, 4);
         int userId = loginUserFromJson(req.body).id;
-        prefs.setString('uuid1', "00000000-0000-$uuid-7263-${userId}000000000");
+        prefs.setString(
+            'uuid1', "00000000-0000-$part1-7263-${userId}000000000");
+        uuid = "00000000-0000-$part1-7263-${userId}000000000";
+        print(prefs.getString('uuid1'));
       } else {
         return null;
       }
