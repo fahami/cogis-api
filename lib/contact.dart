@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/text.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 
 class ContactTrace extends StatefulWidget {
   @override
@@ -132,9 +133,12 @@ class _ContactTraceState extends State<ContactTrace> {
                                         box.getAt(index) as ScansResult;
                                     print(itemScan.scanDate);
                                     return ListCTA(
-                                      titleCTA: itemScan.master,
-                                      subtitleCTA: itemScan.slave,
-                                    );
+                                        titleCTA: "#$index " + itemScan.master,
+                                        subtitleCTA: itemScan.slave +
+                                            " " +
+                                            DateFormat.Hm()
+                                                .format(itemScan.scanDate)
+                                                .toString());
                                   },
                                 );
                               },

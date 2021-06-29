@@ -1,5 +1,3 @@
-import 'package:beacon_broadcast/beacon_broadcast.dart';
-import 'package:gis_apps/provider/broadcast_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
@@ -40,12 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void askPermission() async {
-    var status = await Permission.location.status;
+    var status = await Permission.bluetooth.status;
     if (status.isDenied) {
-      print('Izin GPS ditolak');
+      print('Izin Bluetooth ditolak');
       Map<Permission, PermissionStatus> statuses =
-          await [Permission.location, Permission.bluetooth].request();
-      print(statuses[Permission.location]);
+          await [Permission.bluetooth].request();
       print(statuses[Permission.bluetooth]);
     }
   }

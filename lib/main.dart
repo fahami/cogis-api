@@ -25,6 +25,7 @@ void main() async {
     ..registerAdapter(ScansResultAdapter())
     ..registerAdapter(UserAdapter());
   await Hive.openBox('hospitals');
+  await Hive.openBox('scansresult');
   await AndroidAlarmManager.initialize();
   runApp(ChangeNotifierProvider(
     create: (_) => AuthSystem(),
@@ -32,7 +33,12 @@ void main() async {
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(

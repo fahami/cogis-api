@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
-import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BroadcastBLE with ChangeNotifier {
@@ -22,7 +21,6 @@ class BroadcastBLE with ChangeNotifier {
     bool isAdvertising = await beaconBroadcast.isAdvertising();
     _isBroadcasting = isAdvertising;
     notifyListeners();
-
     return _isBroadcasting;
   }
 
@@ -38,7 +36,7 @@ class BroadcastBLE with ChangeNotifier {
               .setMajorId(1)
               .setMinorId(100)
               .setManufacturerId(0x0118)
-              .setAdvertiseMode(AdvertiseMode.balanced)
+              .setAdvertiseMode(AdvertiseMode.lowPower)
               .start();
         });
       } else {
