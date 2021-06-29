@@ -18,7 +18,7 @@ Future uploadData() async {
       "lng": "112.793076",
       "rssi": datum.rssi,
       "id_user": id,
-      "id_slave": int.parse(datum.slave.substring(9, 12)),
+      "id_slave": int.parse(datum.slave),
       "scan_date": datum.scanDate.toString()
     });
     final uploadReq = await http.post(uploadUrl,
@@ -31,9 +31,11 @@ Future uploadData() async {
     print(uploadReq.statusCode);
     print(bodyReq);
     print(uploadReq.body);
-
-    uploadReq.statusCode == 200
-        ? print('berhasil upload data ${datum.slave} di ${DateTime.now()}')
-        : print('Unggah data ${datum.slave} gagal di ${DateTime.now()}');
+    if (uploadReq.statusCode == 200) {
+      print('berhasil upload data ${datum.slave} di ${DateTime.now()}');
+      boxes.deleteAt(i);
+    } else {
+      print('Unggah data ${datum.slave} gagal di ${DateTime.now()}');
+    }
   }
 }
