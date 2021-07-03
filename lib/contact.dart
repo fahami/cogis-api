@@ -45,7 +45,6 @@ class _ContactTraceState extends State<ContactTrace> {
         child: Stack(
           children: [
             Container(
-              color: Colors.amber,
               child: FutureBuilder(
                   future: getLocation(),
                   builder: (context, snapshot) {
@@ -56,9 +55,10 @@ class _ContactTraceState extends State<ContactTrace> {
                         return FlutterMap(
                           mapController: mapController,
                           options: MapOptions(
-                              center: snapshot.data,
-                              zoom: 13,
-                              plugins: [LocationPlugin()]),
+                            center: snapshot.data,
+                            zoom: 13,
+                            plugins: [LocationPlugin()],
+                          ),
                           layers: [
                             TileLayerOptions(
                               urlTemplate:
@@ -66,14 +66,9 @@ class _ContactTraceState extends State<ContactTrace> {
                             ),
                           ],
                           nonRotatedLayers: <LayerOptions>[
-                            // USAGE NOTE 3: Add the options for the plugin
                             LocationOptions(
                               locationButton(),
                               updateInterval: Duration(seconds: 5),
-                              onLocationUpdate: (LatLngData ld) {
-                                print(
-                                    'Location updated: ${ld?.location} (accuracy: ${ld?.accuracy})');
-                              },
                               onLocationRequested: (LatLngData ld) {
                                 if (ld == null) {
                                   return;
@@ -93,62 +88,53 @@ class _ContactTraceState extends State<ContactTrace> {
               initialChildSize: 0.3,
               minChildSize: 0.3,
               maxChildSize: 0.5,
-              builder: (c, s) {
-                return Material(
-                  elevation: 10,
-                  color: aLightColor,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  child: MultiProvider(
-                    providers: [
-                      ChangeNotifierProvider<BroadcastBLE>(
-                        create: (context) => BroadcastBLE(),
-                      ),
-                    ],
-                    child: Container(
-                      padding: EdgeInsets.only(top: 9),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: Container(
-                              height: 4,
-                              width: 60,
-                              margin: EdgeInsets.only(bottom: 17),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey[300],
-                              ),
+              builder: (c, s) => Material(
+                elevation: 10,
+                color: aLightColor,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                child: ChangeNotifierProvider<BroadcastBLE>(
+                  create: (context) => BroadcastBLE(),
+                  child: Container(
+                    padding: EdgeInsets.only(top: 9),
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Container(
+                            height: 4,
+                            width: 60,
+                            margin: EdgeInsets.only(bottom: 17),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.grey[300],
                             ),
                           ),
-                          Text('Daftar riwayat kontak', style: aHeadingStyle),
-                          Expanded(
-                            child: ValueListenableBuilder(
-                              valueListenable:
-                                  Hive.box('scansresult').listenable(),
-                              builder: (context, box, _) {
-                                return ListView.builder(
-                                  controller: s,
-                                  itemCount: box.length,
-                                  itemBuilder: (context, index) {
-                                    final itemScan =
-                                        box.getAt(index) as ScansResult;
-                                    print(itemScan.scanDate);
-                                    return ListCTA(
-                                        titleCTA:
-                                            "${itemScan.rssi}dBm | ${itemScan.master} <–> ${itemScan.slave}",
-                                        subtitleCTA: DateFormat.jm()
-                                            .format(itemScan.scanDate)
-                                            .toString());
-                                  },
-                                );
+                        ),
+                        Text('Daftar riwayat kontak', style: aHeadingStyle),
+                        Expanded(
+                          child: ValueListenableBuilder(
+                            valueListenable:
+                                Hive.box('scansresult').listenable(),
+                            builder: (context, box, _) => ListView.builder(
+                              controller: s,
+                              itemCount: box.length,
+                              itemBuilder: (context, index) {
+                                final itemScan =
+                                    box.getAt(index) as ScansResult;
+                                return ListCTA(
+                                    titleCTA:
+                                        "${itemScan.rssi}dBm | ${itemScan.master} <–> ${itemScan.slave}",
+                                    subtitleCTA: DateFormat.jm()
+                                        .format(itemScan.scanDate)
+                                        .toString());
                               },
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
             Align(alignment: Alignment.topCenter, child: GPSLocation()),
           ],
@@ -157,38 +143,33 @@ class _ContactTraceState extends State<ContactTrace> {
     );
   }
 
-  LocationButtonBuilder locationButton() {
-    return (BuildContext context, ValueNotifier<LocationServiceStatus> status,
-        Function onPressed) {
-      return Container(
+  LocationButtonBuilder locationButton() => (BuildContext context,
+          ValueNotifier<LocationServiceStatus> status, Function onPressed) =>
+      Container(
         child: Align(
           alignment: Alignment.bottomRight,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 16.0, right: 16.0),
             child: FloatingActionButton(
-                child: ValueListenableBuilder<LocationServiceStatus>(
-                    valueListenable: status,
-                    builder: (BuildContext context, LocationServiceStatus value,
-                        Widget child) {
-                      switch (value) {
-                        case LocationServiceStatus.disabled:
-                        case LocationServiceStatus.permissionDenied:
-                        case LocationServiceStatus.unsubscribed:
-                          return const Icon(
-                            Icons.location_disabled,
-                            color: Colors.white,
-                          );
-                        default:
-                          return const Icon(
-                            Icons.location_searching,
-                            color: Colors.white,
-                          );
-                      }
-                    }),
-                onPressed: () => onPressed()),
+              child: ValueListenableBuilder<LocationServiceStatus>(
+                valueListenable: status,
+                builder: (BuildContext context, LocationServiceStatus value,
+                    Widget child) {
+                  switch (value) {
+                    case LocationServiceStatus.disabled:
+                    case LocationServiceStatus.permissionDenied:
+                    case LocationServiceStatus.unsubscribed:
+                      return const Icon(Icons.location_disabled,
+                          color: Colors.white);
+                    default:
+                      return const Icon(Icons.location_searching,
+                          color: Colors.white);
+                  }
+                },
+              ),
+              onPressed: () => onPressed(),
+            ),
           ),
         ),
       );
-    };
-  }
 }

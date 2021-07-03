@@ -23,6 +23,7 @@ class InputRoundedField extends StatelessWidget {
   Widget build(BuildContext context) {
     return BuildInputField(
       child: TextFormField(
+        textInputAction: TextInputAction.next,
         autofillHints: fillHints,
         controller: controller,
         decoration:
@@ -30,7 +31,7 @@ class InputRoundedField extends StatelessWidget {
         keyboardType: inputType,
         obscureText: obsecure ?? false,
         validator: (value) {
-          return value.isEmpty ? validationError:null;
+          return value.isEmpty ? validationError : null;
         },
       ),
     );

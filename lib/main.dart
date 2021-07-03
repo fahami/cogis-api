@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var appDir = await pathPro.getApplicationDocumentsDirectory();
+  final appDir = await pathPro.getApplicationDocumentsDirectory();
   Hive
     ..init(appDir.path)
     ..registerAdapter(HospitalsAdapter())

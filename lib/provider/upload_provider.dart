@@ -9,11 +9,10 @@ Future uploadData() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   int id = prefs.getInt('userId');
   final uploadUrl = Uri.parse("https://api.karyasa.my.id/scan/$id");
-  var boxes = Hive.box('scansresult');
-  print(boxes.length);
+  final boxes = Hive.box('scansresult');
   for (var i = 0; i < boxes.length; i++) {
     final datum = boxes.getAt(i) as ScansResult;
-    var bodyReq = jsonEncode({
+    final bodyReq = jsonEncode({
       "lat": "-7.276060",
       "lng": "112.793076",
       "rssi": datum.rssi,
@@ -21,16 +20,15 @@ Future uploadData() async {
       "id_slave": int.parse(datum.slave),
       "scan_date": datum.scanDate.toString()
     });
-    final uploadReq = await http.post(uploadUrl,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': prefs.getString('token'),
-          'Content-Type': 'application/json'
-        },
-        body: bodyReq);
-    print(uploadReq.statusCode);
-    print(bodyReq);
-    print(uploadReq.body);
+    final uploadReq = await http.post(
+      uploadUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': prefs.getString('token'),
+        'Content-Type': 'application/json'
+      },
+      body: bodyReq,
+    );
     if (uploadReq.statusCode == 200) {
       print('berhasil upload data ${datum.slave} di ${DateTime.now()}');
       boxes.deleteAt(i);

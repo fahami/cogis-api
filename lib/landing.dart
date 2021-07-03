@@ -25,7 +25,7 @@ import 'constants/color.dart';
 import 'constants/text.dart';
 
 class LandingScreen extends StatelessWidget {
-  int alarmId = 1;
+  final alarmId = 1;
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
