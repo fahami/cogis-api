@@ -259,6 +259,7 @@ void fireAlarm() async {
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
       if (parsed.length == 26) {
+        print(parsed);
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         final slave = parsedSlave.substring(9, 12);
         temporaryList.add(ScansResult(
