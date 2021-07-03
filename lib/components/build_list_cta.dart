@@ -31,22 +31,27 @@ class ListCTA extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
-        trailing: Container(
-          width: 80,
-          child: Row(
-            children: [
-              TrailCTA(
-                url: urlCTA1,
-                icon: iconCTA1,
+        trailing: (urlCTA1 == null && urlCTA2 == null)
+            ? Icon(
+                Icons.connect_without_contact,
+                color: Colors.white,
+              )
+            : Container(
+                width: 80,
+                child: Row(
+                  children: [
+                    TrailCTA(
+                      url: urlCTA1,
+                      icon: iconCTA1,
+                    ),
+                    SizedBox(width: 8),
+                    TrailCTA(
+                      url: urlCTA2,
+                      icon: iconCTA2,
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(width: 8),
-              TrailCTA(
-                url: urlCTA2,
-                icon: iconCTA2,
-              ),
-            ],
-          ),
-        ),
         subtitle: Text(
           subtitleCTA,
           style: aDescriptionStyle,

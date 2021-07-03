@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter/services.dart';
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
 import 'package:animate_do/animate_do.dart';
@@ -20,10 +21,10 @@ import 'components/build_menu.dart';
 import 'components/build_quick_button.dart';
 import 'model/scans.dart';
 import 'provider/background_scan.dart';
+import 'provider/upload_provider.dart';
 import 'provider/broadcast_provider.dart';
 import 'constants/color.dart';
 import 'constants/text.dart';
-import 'provider/upload_provider.dart';
 
 class LandingScreen extends StatelessWidget {
   int alarmId = 1;
@@ -148,9 +149,11 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider<BroadcastBLE>(
-              create: (context) => BroadcastBLE()),
-          ChangeNotifierProvider<BackgroundScan>(
-              create: (context) => BackgroundScan()),
+            create: (context) => BroadcastBLE(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => BackgroundScan(),
+          )
         ],
         child: Column(
           children: [
@@ -164,18 +167,13 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () {
-                            uploadData();
-                          },
+                          onPressed: () => uploadData(),
                           label: Text("Upload"),
                           icon: Icon(Icons.upload),
                         ),
                         ElevatedButton.icon(
-                          onPressed: () {
-                            Hive.box('scansresult').clear();
-                            BleManager().destroyClient();
-                          },
-                          label: Text("Stop BLE"),
+                          onPressed: () => Hive.box('scansresult').clear(),
+                          label: Text("Clear DB"),
                           icon: Icon(Icons.stop),
                         ),
                       ],
@@ -185,14 +183,20 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                       onChanged: (value) async {
                         broadcastBLE.isBroadcasting = value;
                         if (value) {
-                          await AndroidAlarmManager.periodic(
-                              Duration(seconds: 60), 0, fireAlarm);
+                          await AndroidAlarmManager.oneShot(
+                              Duration(seconds: 1), 0, fireAlarm);
                         } else {
                           await AndroidAlarmManager.cancel(0);
-                          // Hive.box('scansresult').clear();
+                          BeaconBroadcast().stop();
                         }
                       },
-                      subtitle: Text('Lindungi diri'),
+                      subtitle: ValueListenableBuilder(
+                        valueListenable: Hive.box('scansresult').listenable(),
+                        builder: (context, value, child) {
+                          return Text(
+                              value.length.toString() + ' Data siap diunggah');
+                        },
+                      ),
                       title: Text("Aktifkan tracing"),
                     ),
                   ],
@@ -241,36 +245,52 @@ void fireAlarm() async {
   Hive
     ..init(appDir.path)
     ..registerAdapter(ScansResultAdapter(), override: true);
-
   Hive.close();
-
   var hasilScan = await Hive.openBox<ScansResult>('scansresult');
+
   final master = prefs.getInt('userId').toString();
   BleManager bleManager = BleManager();
   final dateScan = DateTime.now();
+  List temporaryList = [];
   try {
     bleManager.createClient();
-    print("Fired at ${DateTime.now()}");
     bleManager
-        .startPeripheralScan(
-            allowDuplicates: false, scanMode: ScanMode.lowLatency)
+        .startPeripheralScan(scanMode: ScanMode.lowLatency)
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
-
       if (parsed.length == 26) {
-        print(parsed);
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         final slave = parsedSlave.substring(9, 12);
-        hasilScan.add(ScansResult(master, slave, dateScan, scanResult.rssi));
+        temporaryList.add(ScansResult(
+          master,
+          slave,
+          dateScan,
+          scanResult.rssi,
+        ));
+        // print(slave);
       }
-      Future.delayed(Duration(seconds: 4)).then((value) {
-        try {
-          bleManager.stopPeripheralScan();
-          Hive.close();
-        } catch (e) {
-          print(e);
-        }
+    });
+    Future.delayed(Duration(seconds: 3)).then((value) {
+      try {
+        bleManager.stopPeripheralScan();
+      } catch (e) {
+        print(e);
+      }
+    }).then((value) {
+      temporaryList.forEach((item) {
+        print(item.slave);
+        hasilScan.add(item);
       });
+      // for (var item in temporaryList) {
+      //   print(item);
+      // }
+      // for (var i = 0; i < temporaryList.length; i++) {
+      //   if (temporaryList.any((e) => e.slave == temporaryList[i].slave)) {
+      //     continue;
+      //   }
+      //   print(temporaryList[i]);
+      //   hasilScan.add(temporaryList[i]);
+      // }
     });
   } catch (e) {
     print(e);

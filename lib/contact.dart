@@ -133,12 +133,11 @@ class _ContactTraceState extends State<ContactTrace> {
                                         box.getAt(index) as ScansResult;
                                     print(itemScan.scanDate);
                                     return ListCTA(
-                                        titleCTA: "#$index " + itemScan.master,
-                                        subtitleCTA: itemScan.slave +
-                                            " " +
-                                            DateFormat.Hm()
-                                                .format(itemScan.scanDate)
-                                                .toString());
+                                        titleCTA:
+                                            "${itemScan.rssi}dBm | ${itemScan.master} <–> ${itemScan.slave}",
+                                        subtitleCTA: DateFormat.jm()
+                                            .format(itemScan.scanDate)
+                                            .toString());
                                   },
                                 );
                               },
