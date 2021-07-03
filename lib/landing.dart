@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
 import 'package:animate_do/animate_do.dart';
@@ -20,7 +19,6 @@ import 'components/build_location_indicator.dart';
 import 'components/build_menu.dart';
 import 'components/build_quick_button.dart';
 import 'model/scans.dart';
-import 'provider/background_scan.dart';
 import 'provider/upload_provider.dart';
 import 'provider/broadcast_provider.dart';
 import 'constants/color.dart';
@@ -151,79 +149,52 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
           ChangeNotifierProvider<BroadcastBLE>(
             create: (context) => BroadcastBLE(),
           ),
-          ChangeNotifierProvider(
-            create: (context) => BackgroundScan(),
-          )
         ],
         child: Column(
           children: [
-            Consumer<BackgroundScan>(
-              builder: (context, backgroundScan, _) =>
-                  Consumer<BroadcastBLE>(builder: (context, broadcastBLE, _) {
-                broadcastBLE.stateBroadcasting();
-                return Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => uploadData(),
-                          label: Text("Upload"),
-                          icon: Icon(Icons.upload),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () => Hive.box('scansresult').clear(),
-                          label: Text("Clear DB"),
-                          icon: Icon(Icons.stop),
-                        ),
-                      ],
-                    ),
-                    SwitchListTile(
-                      value: broadcastBLE.isBroadcasting,
-                      onChanged: (value) async {
-                        broadcastBLE.isBroadcasting = value;
-                        if (value) {
-                          await AndroidAlarmManager.oneShot(
-                              Duration(seconds: 1), 0, fireAlarm);
-                        } else {
-                          await AndroidAlarmManager.cancel(0);
-                          BeaconBroadcast().stop();
-                        }
-                      },
-                      subtitle: ValueListenableBuilder(
-                        valueListenable: Hive.box('scansresult').listenable(),
-                        builder: (context, value, child) {
-                          return Text(
-                              value.length.toString() + ' Data siap diunggah');
-                        },
+            Consumer<BroadcastBLE>(builder: (context, broadcastBLE, _) {
+              broadcastBLE.stateBroadcasting();
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => uploadData(),
+                        label: Text("Upload"),
+                        icon: Icon(Icons.upload),
                       ),
-                      title: Text("Aktifkan tracing"),
-                    ),
-                  ],
-                );
-              }),
-            ),
+                      ElevatedButton.icon(
+                        onPressed: () => Hive.box('scansresult').clear(),
+                        label: Text("Clear DB"),
+                        icon: Icon(Icons.stop),
+                      ),
+                    ],
+                  ),
+                  SwitchListTile(
+                    value: broadcastBLE.isBroadcasting,
+                    onChanged: (value) async {
+                      broadcastBLE.isBroadcasting = value;
+                      if (value) {
+                        await AndroidAlarmManager.oneShot(
+                            Duration(seconds: 2), 0, fireAlarm);
+                      } else {
+                        await AndroidAlarmManager.cancel(0);
+                        BeaconBroadcast().stop();
+                      }
+                    },
+                    title: Text("Aktifkan tracing"),
+                  ),
+                ],
+              );
+            }),
             Row(
               children: [
-                BuildMenu(
-                    menuImage: 'assets/icons/chart-line.svg',
-                    menuName: 'Statistik',
-                    menuMargin: EdgeInsets.only(right: 21 / 2, bottom: 21 / 2),
-                    menuNavigate: '/stats'),
                 BuildMenu(
                     menuImage: 'assets/icons/hospital.svg',
                     menuName: 'Rumah Sakit',
-                    menuMargin: EdgeInsets.only(left: 21 / 2, bottom: 21 / 2),
+                    menuMargin: EdgeInsets.only(left: 21 / 2, top: 21 / 2),
                     menuNavigate: '/hospital'),
-              ],
-            ),
-            Row(
-              children: [
-                BuildMenu(
-                    menuImage: 'assets/icons/file_medical.svg',
-                    menuName: 'Cek Medis',
-                    menuMargin: EdgeInsets.only(right: 21 / 2, top: 21 / 2),
-                    menuNavigate: '/medical'),
                 BuildMenu(
                   menuImage: 'assets/icons/shield-check.svg',
                   menuName: 'Riwayat Kontak',
@@ -245,7 +216,7 @@ void fireAlarm() async {
   Hive
     ..init(appDir.path)
     ..registerAdapter(ScansResultAdapter(), override: true);
-  Hive.close();
+
   var hasilScan = await Hive.openBox<ScansResult>('scansresult');
 
   final master = prefs.getInt('userId').toString();
@@ -259,7 +230,6 @@ void fireAlarm() async {
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
       if (parsed.length == 26) {
-        print(parsed);
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         final slave = parsedSlave.substring(9, 12);
         temporaryList.add(ScansResult(
@@ -268,7 +238,6 @@ void fireAlarm() async {
           dateScan,
           scanResult.rssi,
         ));
-        // print(slave);
       }
     });
     Future.delayed(Duration(seconds: 3)).then((value) {
@@ -282,16 +251,6 @@ void fireAlarm() async {
         print(item.slave);
         hasilScan.add(item);
       });
-      // for (var item in temporaryList) {
-      //   print(item);
-      // }
-      // for (var i = 0; i < temporaryList.length; i++) {
-      //   if (temporaryList.any((e) => e.slave == temporaryList[i].slave)) {
-      //     continue;
-      //   }
-      //   print(temporaryList[i]);
-      //   hasilScan.add(temporaryList[i]);
-      // }
     });
   } catch (e) {
     print(e);

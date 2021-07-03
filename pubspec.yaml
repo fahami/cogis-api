@@ -26,12 +26,10 @@ dependencies:
   android_alarm_manager: ^2.0.2
   animate_do: ^2.0.0
   beacon_broadcast: ^0.2.3
-  bluetooth_enable: ^0.1.1
   cached_network_image: ^3.0.0
   cupertino_icons: ^1.0.2
   darq: ^1.1.1
   equatable: ^2.0.2
-  fl_chart: ^0.36.2
   flutter_ble_lib: ^2.3.2
   flutter_launcher_icons: ^0.9.0
   flutter_map: ^0.13.1
