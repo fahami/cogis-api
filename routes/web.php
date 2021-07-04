@@ -20,10 +20,10 @@ $router->post('register', 'UserController@register');
 $router->post('login', 'UserController@login');
 $router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($router) {
     $router->delete('/{id}', 'UserController@delete');
-    $router->put('/{id}', 'UserController@update');
     $router->get('/{id}', 'UserController@find');
-    $router->put('/state', 'UserController@updatestate');
     $router->get('/', 'UserController@index');
+    $router->put('/state', 'UserController@updatestate');
+    $router->put('/{id}', 'UserController@update');
 });
 
 $router->group(['prefix' => 'node', 'middleware' => 'auth'], function () use ($router) {
