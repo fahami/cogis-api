@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class BroadcastBLE with ChangeNotifier {
   bool _isBroadcasting = false;
+  bool _isUploading = false;
+  bool get isUploading => _isUploading;
   bool get isBroadcasting => _isBroadcasting;
   String _uuidBroadcast;
   String get uuidBroadcast => _uuidBroadcast;
@@ -22,6 +24,11 @@ class BroadcastBLE with ChangeNotifier {
     _isBroadcasting = isAdvertising;
     notifyListeners();
     return _isBroadcasting;
+  }
+
+  set isUploading(bool trigger) {
+    _isUploading = trigger ? true : false;
+    notifyListeners();
   }
 
   set isBroadcasting(bool trigger) {

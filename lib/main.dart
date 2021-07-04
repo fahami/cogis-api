@@ -1,20 +1,21 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:gis_apps/contact.dart';
-import 'package:gis_apps/hospital.dart';
-import 'package:gis_apps/landing.dart';
-import 'package:gis_apps/login.dart';
+import 'package:path_provider/path_provider.dart' as pathPro;
+import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:gis_apps/medical_report.dart';
 import 'package:gis_apps/model/hospitals.dart';
 import 'package:gis_apps/model/scans.dart';
 import 'package:gis_apps/model/user.dart';
-import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:gis_apps/register.dart';
 import 'package:gis_apps/statistics.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+import 'package:gis_apps/contact.dart';
+import 'package:gis_apps/creator.dart';
+import 'package:gis_apps/hospital.dart';
+import 'package:gis_apps/landing.dart';
+import 'package:gis_apps/login.dart';
+import 'package:hive/hive.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +43,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'CoGIS',
       home: FutureBuilder(
         future: Hive.openBox('scansresult'),
@@ -66,6 +66,7 @@ class _MyAppState extends State<MyApp> {
         GetPage(name: '/contact', page: () => ContactTrace()),
         GetPage(name: '/stats', page: () => Statistic()),
         GetPage(name: '/home', page: () => LandingScreen()),
+        GetPage(name: '/creator', page: () => CreatorPage()),
       ],
     );
   }

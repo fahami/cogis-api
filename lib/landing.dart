@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
+import 'package:http/http.dart' as http;
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +40,7 @@ class LandingScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.info, color: aTextColor),
-            onPressed: () {
-              Get.offNamed('/hospital');
-            },
+            onPressed: () => Get.offNamed('/creator'),
           ),
           actions: [
             IconButton(
@@ -156,27 +156,28 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
               broadcastBLE.stateBroadcasting();
               return Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => uploadData(),
-                        label: Text("Upload"),
-                        icon: Icon(Icons.upload),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => Hive.box('scansresult').clear(),
-                        label: Text("Clear DB"),
-                        icon: Icon(Icons.stop),
-                      ),
-                    ],
+                  ElevatedButton.icon(
+                    onPressed: () => Hive.box('scansresult').clear(),
+                    label: Text("Clear DB"),
+                    icon: Icon(Icons.stop),
+                  ),
+                  SwitchListTile(
+                    title: Text('Unggah data otomatis'),
+                    value: broadcastBLE.isUploading,
+                    onChanged: (value) async {
+                      broadcastBLE.isUploading = value;
+                      value
+                          ? await AndroidAlarmManager.periodic(
+                              Duration(minutes: 1), 1, fireUpload)
+                          : await AndroidAlarmManager.cancel(1);
+                    },
                   ),
                   SwitchListTile(
                     value: broadcastBLE.isBroadcasting,
                     onChanged: (value) async {
                       broadcastBLE.isBroadcasting = value;
                       if (value) {
-                        await AndroidAlarmManager.oneShot(
+                        await AndroidAlarmManager.periodic(
                             Duration(seconds: 2), 0, fireAlarm);
                       } else {
                         await AndroidAlarmManager.cancel(0);
@@ -220,6 +221,7 @@ void fireAlarm() async {
   var hasilScan = await Hive.openBox<ScansResult>('scansresult');
 
   final master = prefs.getInt('userId').toString();
+  final threshold = prefs.getInt('threshold');
   BleManager bleManager = BleManager();
   final dateScan = DateTime.now();
   List temporaryList = [];
@@ -229,7 +231,8 @@ void fireAlarm() async {
         .startPeripheralScan(scanMode: ScanMode.lowLatency)
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
-      if (parsed.length == 26) {
+      int rssi = scanResult.rssi;
+      if (parsed.length == 26 && rssi > threshold) {
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         final slave = parsedSlave.substring(9, 12);
         temporaryList.add(ScansResult(
@@ -254,5 +257,45 @@ void fireAlarm() async {
     });
   } catch (e) {
     print(e);
+  }
+}
+
+void fireUpload() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  int id = prefs.getInt('userId');
+  String latitude = prefs.getString('latitude') ?? null;
+  String longitude = prefs.getString('longitude') ?? null;
+  var appDir = await pathPro.getApplicationDocumentsDirectory();
+  Hive
+    ..init(appDir.path)
+    ..registerAdapter(ScansResultAdapter(), override: true);
+  final boxes = await Hive.openBox<ScansResult>('scansresult');
+  final uploadUrl = Uri.parse("https://api.karyasa.my.id/scan/$id");
+
+  for (var i = 0; i < boxes.length; i++) {
+    final datum = boxes.getAt(i) as ScansResult;
+    final bodyReq = jsonEncode({
+      "lat": latitude,
+      "lng": longitude,
+      "rssi": datum.rssi,
+      "id_user": id,
+      "id_slave": int.parse(datum.slave),
+      "scan_date": datum.scanDate.toString()
+    });
+    final uploadReq = await http.post(
+      uploadUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': prefs.getString('token'),
+        'Content-Type': 'application/json'
+      },
+      body: bodyReq,
+    );
+    if (uploadReq.statusCode == 200) {
+      print('berhasil upload data ${datum.slave} di ${DateTime.now()}');
+      boxes.deleteAt(i);
+    } else {
+      print('Unggah data ${datum.slave} gagal di ${DateTime.now()}');
+    }
   }
 }

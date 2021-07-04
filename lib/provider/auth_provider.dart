@@ -41,6 +41,7 @@ class AuthSystem with ChangeNotifier {
             'token', 'Bearer ' + loginUserFromJson(req.body).apiToken);
         prefs.setInt('userId', loginUserFromJson(req.body).id);
         prefs.setString('name', loginUserFromJson(req.body).name);
+        prefs.setInt('threshold', loginUserFromJson(req.body).threshold);
         prefs.setString('phone', phone);
         String part1 = phone.substring(0, 4);
         int userId = loginUserFromJson(req.body).id;
@@ -48,6 +49,7 @@ class AuthSystem with ChangeNotifier {
             'uuid1', "00000000-0000-$part1-7263-${userId}000000000");
         uuid = "00000000-0000-$part1-7263-${userId}000000000";
         print(prefs.getString('uuid1'));
+        print(prefs.getInt('threshold'));
       } else {
         return null;
       }
