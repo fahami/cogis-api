@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:flutter_map_location/flutter_map_location.dart';
-import 'package:gis_apps/components/build_list_cta.dart';
-import 'package:gis_apps/components/build_location_indicator.dart';
-import 'package:gis_apps/constants/color.dart';
-import 'package:gis_apps/model/scans.dart';
-import 'package:gis_apps/provider/broadcast_provider.dart';
+import 'package:cogis/components/build_list_cta.dart';
+import 'package:cogis/components/build_location_indicator.dart';
+import 'package:cogis/constants/color.dart';
+import 'package:cogis/model/scans.dart';
+import 'package:cogis/provider/broadcast_provider.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -136,7 +137,24 @@ class _ContactTraceState extends State<ContactTrace> {
                 ),
               ),
             ),
-            Align(alignment: Alignment.topCenter, child: GPSLocation()),
+            Align(
+                alignment: Alignment.topCenter,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Get.toNamed('/home'),
+                      child: Icon(Icons.arrow_back),
+                      style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(8),
+                          primary: Colors.white,
+                          onPrimary: Colors.black),
+                    ),
+                    GPSLocation(),
+                    SizedBox()
+                  ],
+                )),
           ],
         ),
       ),

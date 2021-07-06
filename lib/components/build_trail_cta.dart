@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gis_apps/constants/color.dart';
+import 'package:cogis/constants/color.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TrailCTA extends StatelessWidget {

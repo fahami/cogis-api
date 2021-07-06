@@ -1,6 +1,9 @@
+import 'package:cogis/constants/color.dart';
+import 'package:cogis/constants/text.dart';
 import 'package:flutter/material.dart';
-import 'package:gis_apps/model/hospitals.dart';
+import 'package:cogis/model/hospitals.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -18,7 +21,32 @@ class _HospitalState extends State<Hospital> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daftar Rumah Sakit'),
+        backgroundColor: aBackgroundColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            ElevatedButton(
+              onPressed: () => Get.toNamed('/home'),
+              child: Icon(Icons.arrow_back),
+              style: ElevatedButton.styleFrom(
+                  shape: CircleBorder(),
+                  padding: EdgeInsets.all(8),
+                  primary: Colors.white,
+                  onPrimary: Colors.black),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('DAFTAR', style: TextStyle(color: Colors.black54)),
+                Text(
+                  'Rumah Sakit',
+                  style: TextStyle(color: Colors.black),
+                )
+              ],
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: FutureBuilder(
@@ -60,8 +88,10 @@ class _HospitalState extends State<Hospital> {
                 ),
               );
             } else {
-              return Center(
-                child: CircularProgressIndicator(),
+              return Container(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               );
             }
           },

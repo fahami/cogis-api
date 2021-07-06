@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:gis_apps/constants/color.dart';
-import 'package:gis_apps/constants/text.dart';
+import 'package:cogis/constants/color.dart';
+import 'package:cogis/constants/text.dart';
 import 'package:get/get.dart';
 
 class BuildMenu extends StatelessWidget {

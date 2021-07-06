@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gis_apps/components/build_input_field.dart';
+import 'package:cogis/components/build_input_field.dart';
 
 class InputRoundedField extends StatelessWidget {
   final TextInputType inputType;

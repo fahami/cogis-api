@@ -21,13 +21,11 @@ import 'components/build_location_indicator.dart';
 import 'components/build_menu.dart';
 import 'components/build_quick_button.dart';
 import 'model/scans.dart';
-import 'provider/upload_provider.dart';
 import 'provider/broadcast_provider.dart';
 import 'constants/color.dart';
 import 'constants/text.dart';
 
 class LandingScreen extends StatelessWidget {
-  final alarmId = 1;
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -38,10 +36,7 @@ class LandingScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: aBackgroundColor,
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.info, color: aTextColor),
-            onPressed: () => Get.offNamed('/creator'),
-          ),
+          leading: SizedBox(),
           actions: [
             IconButton(
               icon: Icon(Icons.logout, color: aTextColor),
@@ -80,15 +75,12 @@ class LandingScreen extends StatelessWidget {
                             ),
                             Positioned(
                                 top: 143,
-                                child: Text(
-                                  'Selamat datang!',
-                                  style: aHeadingStyle,
-                                )),
+                                child: Text('Selamat datang!',
+                                    style: aHeadingStyle)),
                             Positioned(
-                              top: 167,
-                              child: Text('Tetap lindungi diri..',
-                                  style: aSubtitleStyle),
-                            )
+                                top: 167,
+                                child: Text('Tetap lindungi diri..',
+                                    style: aSubtitleStyle))
                           ],
                         ),
                       ),
@@ -100,9 +92,7 @@ class LandingScreen extends StatelessWidget {
               Positioned(
                 bottom: 20,
                 width: MediaQuery.of(context).size.width,
-                child: Center(
-                  child: QuickButton(),
-                ),
+                child: Center(child: QuickButton()),
               ),
             ],
           ),
@@ -132,7 +122,6 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('state = $state');
     if (state == AppLifecycleState.resumed) {
       print('Aplikasi kembali dibuka');
       BroadcastBLE().stateBroadcasting();
@@ -143,7 +132,7 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(bottom: 40),
-      padding: EdgeInsets.fromLTRB(45, 0, 45, 0),
+      padding: EdgeInsets.fromLTRB(30, 0, 30, 0),
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider<BroadcastBLE>(
@@ -156,35 +145,38 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
               broadcastBLE.stateBroadcasting();
               return Column(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () => Hive.box('scansresult').clear(),
-                    label: Text("Clear DB"),
-                    icon: Icon(Icons.stop),
-                  ),
                   SwitchListTile(
-                    title: Text('Unggah data otomatis'),
+                    title: Text('Auto Sync'),
+                    subtitle: Text('Mengunggah data berkala'),
                     value: broadcastBLE.isUploading,
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
                       value
                           ? await AndroidAlarmManager.periodic(
-                              Duration(minutes: 1), 1, fireUpload)
+                              Duration(minutes: 15), 1, fireUpload,
+                              exact: true,
+                              wakeup: true,
+                              rescheduleOnReboot: true)
                           : await AndroidAlarmManager.cancel(1);
                     },
                   ),
                   SwitchListTile(
+                    title: Text("Aktifkan tracing"),
+                    subtitle: Text('Membutuhkan Bluetooth Aktif'),
                     value: broadcastBLE.isBroadcasting,
                     onChanged: (value) async {
                       broadcastBLE.isBroadcasting = value;
                       if (value) {
                         await AndroidAlarmManager.periodic(
-                            Duration(seconds: 2), 0, fireAlarm);
+                            Duration(seconds: 2), 0, fireAlarm,
+                            exact: true,
+                            wakeup: true,
+                            rescheduleOnReboot: true);
                       } else {
                         await AndroidAlarmManager.cancel(0);
                         BeaconBroadcast().stop();
                       }
                     },
-                    title: Text("Aktifkan tracing"),
                   ),
                 ],
               );
@@ -243,7 +235,7 @@ void fireAlarm() async {
         ));
       }
     });
-    Future.delayed(Duration(seconds: 3)).then((value) {
+    Future.delayed(Duration(seconds: 3)).then((_) {
       try {
         bleManager.stopPeripheralScan();
       } catch (e) {
@@ -251,7 +243,10 @@ void fireAlarm() async {
       }
     }).then((value) {
       temporaryList.forEach((item) {
-        print(item.slave);
+        print("Data " +
+            item.slave +
+            " disimpan pada " +
+            DateTime.now().toString());
         hasilScan.add(item);
       });
     });

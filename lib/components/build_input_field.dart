@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gis_apps/constants/color.dart';
+import 'package:cogis/constants/color.dart';
 
 class BuildInputField extends StatelessWidget {
   final Widget child;

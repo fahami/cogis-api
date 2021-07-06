@@ -1,4 +1,4 @@
-import 'package:gis_apps/model/hospitals.dart';
+import 'package:cogis/model/hospitals.dart';
 import 'package:hive/hive.dart';
 
 const hospital_list = [

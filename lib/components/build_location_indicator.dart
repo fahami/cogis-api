@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:gis_apps/constants/color.dart';
-import 'package:gis_apps/constants/text.dart';
+import 'package:cogis/constants/color.dart';
+import 'package:cogis/constants/text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GPSLocation extends StatefulWidget {

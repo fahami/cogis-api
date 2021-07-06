@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
-import 'package:gis_apps/constants/color.dart';
-import 'package:gis_apps/constants/text.dart';
-import 'package:gis_apps/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'components/build_input_rounded.dart';
 import 'package:get/get.dart';
+
+import 'constants/color.dart';
+import 'constants/text.dart';
+import 'provider/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override

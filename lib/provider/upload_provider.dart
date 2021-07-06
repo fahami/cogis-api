@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:gis_apps/model/scans.dart';
+import 'package:cogis/model/scans.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;

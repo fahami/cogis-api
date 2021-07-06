@@ -1,23 +1,27 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
-import 'package:gis_apps/provider/auth_provider.dart';
-import 'package:gis_apps/medical_report.dart';
-import 'package:gis_apps/model/hospitals.dart';
-import 'package:gis_apps/model/scans.dart';
-import 'package:gis_apps/model/user.dart';
-import 'package:gis_apps/register.dart';
-import 'package:gis_apps/statistics.dart';
+import 'package:cogis/provider/auth_provider.dart';
+import 'package:cogis/medical_report.dart';
+import 'package:cogis/model/hospitals.dart';
+import 'package:cogis/model/scans.dart';
+import 'package:cogis/model/user.dart';
+import 'package:cogis/register.dart';
+import 'package:cogis/statistics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:gis_apps/contact.dart';
-import 'package:gis_apps/creator.dart';
-import 'package:gis_apps/hospital.dart';
-import 'package:gis_apps/landing.dart';
-import 'package:gis_apps/login.dart';
+import 'package:cogis/contact.dart';
+import 'package:cogis/creator.dart';
+import 'package:cogis/hospital.dart';
+import 'package:cogis/landing.dart';
+import 'package:cogis/login.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
 
 void main() async {
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
   WidgetsFlutterBinding.ensureInitialized();
   final appDir = await pathPro.getApplicationDocumentsDirectory();
   Hive
@@ -43,6 +47,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'CoGIS',
       home: FutureBuilder(
         future: Hive.openBox('scansresult'),

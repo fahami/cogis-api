@@ -1,4 +1,4 @@
-package com.example.gis_apps
+package com.karyasa.cogis
 
 import io.flutter.embedding.android.FlutterActivity
 

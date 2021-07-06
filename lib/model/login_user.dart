@@ -13,20 +13,20 @@ class LoginUser {
     this.id,
     this.name,
     this.apiToken,
-    this.threshold,
+    this.rssi,
   });
 
   int id;
   String name;
   String apiToken;
-  int threshold;
+  int rssi;
 
   factory LoginUser.fromJson(Map<String, dynamic> json) => LoginUser(
       id: json["id"],
       name: json["name"],
       apiToken: json["api_token"],
-      threshold: json["threshold"]);
+      rssi: json["rssi"]);
 
   Map<String, dynamic> toJson() =>
-      {"id": id, "name": name, "api_token": apiToken, "threshold": threshold};
+      {"id": id, "name": name, "api_token": apiToken, "rssi": rssi};
 }

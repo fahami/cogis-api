@@ -1,5 +1,5 @@
+import 'package:cogis/model/login_user.dart';
 import 'package:flutter/material.dart';
-import 'package:gis_apps/model/login_user.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,7 +26,6 @@ class AuthSystem with ChangeNotifier {
     final registerUrl = Uri.parse("https://api.karyasa.my.id/register");
     var req = await http
         .post(registerUrl, body: {"name": name, "phone": phone, "pwd": pwd});
-
     return req.statusCode;
   }
 
@@ -35,13 +34,14 @@ class AuthSystem with ChangeNotifier {
       final loginUrl = Uri.parse("https://api.karyasa.my.id/login");
       var req =
           await http.post(loginUrl, body: {"phone": phone, "pwd": password});
+      print(req.statusCode);
       if (req.statusCode == 200) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString(
             'token', 'Bearer ' + loginUserFromJson(req.body).apiToken);
         prefs.setInt('userId', loginUserFromJson(req.body).id);
         prefs.setString('name', loginUserFromJson(req.body).name);
-        prefs.setInt('threshold', loginUserFromJson(req.body).threshold);
+        prefs.setInt('threshold', loginUserFromJson(req.body).rssi);
         prefs.setString('phone', phone);
         String part1 = phone.substring(0, 4);
         int userId = loginUserFromJson(req.body).id;

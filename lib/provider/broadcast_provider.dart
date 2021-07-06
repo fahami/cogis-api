@@ -22,6 +22,7 @@ class BroadcastBLE with ChangeNotifier {
     BeaconBroadcast beaconBroadcast = BeaconBroadcast();
     bool isAdvertising = await beaconBroadcast.isAdvertising();
     _isBroadcasting = isAdvertising;
+    // print("Status advertising: $isAdvertising ${DateTime.now()}");
     notifyListeners();
     return _isBroadcasting;
   }
@@ -36,8 +37,7 @@ class BroadcastBLE with ChangeNotifier {
     try {
       if (trigger == true) {
         setupUuid();
-        Future.delayed(Duration(seconds: 2)).then((_) {
-          print("UUID Dieksekusi: $_uuidBroadcast");
+        Future.delayed(Duration(seconds: 1)).then((_) {
           beaconBroadcast
               .setUUID(_uuidBroadcast)
               .setMajorId(1)
@@ -67,8 +67,4 @@ class BroadcastBLE with ChangeNotifier {
     notifyListeners();
     return _isTransmissionSupported;
   }
-
-  String get statusBroadcasting => (_isBroadcasting)
-      ? 'Kamu terlindungi'
-      : 'Waspada Covid-19 di sekitar anda';
 }
