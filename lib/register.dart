@@ -96,9 +96,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     phone: phoneController.text,
                                     pwd: pwdController.text,
                                   );
-                                  req != 200
-                                      ? registerDialog(context)
-                                      : Get.offNamed('/home');
+                                  if (req != 200) {
+                                    registerDialog(context,
+                                        "Nomor anda mungkin pernah digunakan sebelumnya, coba nomor lain.");
+                                  } else {
+                                    registerDialog(context,
+                                        "Selamat, pendaftaran anda telah berhasil. Silahkan melanjutkan login.");
+                                    Get.offAllNamed('/login');
+                                  }
                                 },
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
@@ -121,14 +126,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<dynamic> registerDialog(BuildContext context) {
+  Future<dynamic> registerDialog(BuildContext context, String message) {
     return showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Pendaftaran Gagal dilakukan."),
-          content: Text(
-              "Pastikan Anda tidak menggunakan nomor telepon yang sama dengan sebelumnya"),
+          title: Text("Informasi"),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

@@ -1,5 +1,4 @@
 import 'package:cogis/constants/color.dart';
-import 'package:cogis/constants/text.dart';
 import 'package:flutter/material.dart';
 import 'package:cogis/model/hospitals.dart';
 import 'package:animate_do/animate_do.dart';

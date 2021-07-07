@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:http/http.dart' as http;
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
@@ -44,7 +46,7 @@ class LandingScreen extends StatelessWidget {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 prefs.clear();
                 Hive.box('scansresult').clear();
-                Get.offNamed('/login');
+                Get.offAllNamed('/login');
               },
             ),
           ],
@@ -152,8 +154,8 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
                       value
-                          ? await AndroidAlarmManager.periodic(
-                              Duration(minutes: 15), 1, fireUpload,
+                          ? await AndroidAlarmManager.oneShot(
+                              Duration(seconds: 15), 1, fireUpload,
                               exact: true,
                               wakeup: true,
                               rescheduleOnReboot: true)
@@ -264,9 +266,37 @@ void fireUpload() async {
   Hive
     ..init(appDir.path)
     ..registerAdapter(ScansResultAdapter(), override: true);
-  final boxes = await Hive.openBox<ScansResult>('scansresult');
-  final uploadUrl = Uri.parse("https://api.karyasa.my.id/scan/$id");
+  final geolocation = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best);
+  String geolatitude = geolocation.latitude.toString();
+  String geolongitude = geolocation.longitude.toString();
+  latitude = geolatitude ?? latitude;
+  longitude = geolongitude ?? longitude;
+  List<Placemark> placemarks = await placemarkFromCoordinates(
+      double.parse(latitude), double.parse(longitude),
+      localeIdentifier: "id_ID");
 
+  Placemark place = placemarks[0];
+  final boxes = await Hive.openBox<ScansResult>('scansresult');
+  final header = {
+    'Accept': 'application/json',
+    'Authorization': prefs.getString('token'),
+    'Content-Type': 'application/json'
+  };
+  final updateBody = jsonEncode({
+    "name": prefs.getString('name'),
+    "address": place.street,
+    "state": int.parse(place.postalCode),
+    "lat": latitude,
+    "lng": longitude
+  });
+  print(updateBody);
+  final uploadUrl = Uri.parse("https://api.karyasa.my.id/scan/$id");
+  final updateUrl = Uri.parse("https://api.karyasa.my.id/user/$id");
+  final updateReq =
+      await http.put(updateUrl, headers: header, body: updateBody);
+  print(updateReq.statusCode);
+  print(updateReq.body);
   for (var i = 0; i < boxes.length; i++) {
     final datum = boxes.getAt(i) as ScansResult;
     final bodyReq = jsonEncode({
@@ -279,18 +309,16 @@ void fireUpload() async {
     });
     final uploadReq = await http.post(
       uploadUrl,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': prefs.getString('token'),
-        'Content-Type': 'application/json'
-      },
+      headers: header,
       body: bodyReq,
     );
     if (uploadReq.statusCode == 200) {
-      print('berhasil upload data ${datum.slave} di ${DateTime.now()}');
+      print(
+          'berhasil upload data ${datum.slave} di ${DateTime.now()} lokasi $latitude,$longitude');
       boxes.deleteAt(i);
     } else {
-      print('Unggah data ${datum.slave} gagal di ${DateTime.now()}');
+      print(
+          'Unggah data ${datum.slave} gagal di ${DateTime.now()} lokasi $latitude,$longitude');
     }
   }
 }
