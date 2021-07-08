@@ -2,6 +2,8 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+use App\Http\Controllers\MasterController;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -18,6 +20,9 @@ $router->get('/', function () use ($router) {
 });
 $router->post('register', 'UserController@register');
 $router->post('login', 'UserController@login');
+$router->group(['prefix' => 'admin', 'middleware' => 'auth'], function () use ($router) {
+    $router->put('/rssi', 'MasterController@update');
+});
 $router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($router) {
     $router->delete('/{id}', 'UserController@delete');
     $router->get('/{id}', 'UserController@find');
