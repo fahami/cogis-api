@@ -26,7 +26,7 @@ class ScanController extends Controller
             $data->from = $data->id_user;
             $data->to = $data->id_slave;
             $data->label = $data->scan_date;
-            $data->rssi = $data->rssi;
+            $data->value = $data->rssi;
             unset($data->id_user, $data->id_slave, $data->scan_date, $data->rssi);
             return $data;
         });
