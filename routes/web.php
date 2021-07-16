@@ -20,8 +20,13 @@ $router->get('/', function () use ($router) {
 });
 $router->post('register', 'UserController@register');
 $router->post('login', 'UserController@login');
+$router->group(['prefix' => 'app', 'middleware' => 'auth'], function () use ($router) {
+    $router->get('/scan/{id}', 'AndroidController@find');
+    $router->get('/marker/{id}', 'AndroidController@marker');
+});
 $router->group(['prefix' => 'admin', 'middleware' => 'auth'], function () use ($router) {
     $router->put('/rssi', 'MasterController@update');
+    $router->get('/stats', 'MasterController@stats');
 });
 $router->group(['prefix' => 'user', 'middleware' => 'auth'], function () use ($router) {
     $router->delete('/{id}', 'UserController@delete');
