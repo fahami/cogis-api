@@ -39,6 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
             child: Column(
               children: [
                 FadeInUp(
@@ -59,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         InputRoundedField(
+                          autofocus: true,
                           fillHints: [AutofillHints.telephoneNumber],
                           controller: phoneController,
                           hintText: 'Nomor telepon',

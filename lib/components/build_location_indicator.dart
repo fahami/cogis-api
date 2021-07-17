@@ -54,21 +54,22 @@ class _GPSLocationState extends State<GPSLocation> {
 
   _getCurrentLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best,
-            forceAndroidLocationManager: true)
-        .then((Position position) {
-      setState(() {
-        print("dapat lokasi di position $position");
-        _currentPosition = position;
-        prefs
-          ..setString('latitude', _currentPosition.latitude.toString())
-          ..setString('longitude', _currentPosition.longitude.toString());
-        _getAddressFromLatLng();
-      });
-    }).catchError((e) {
-      print(e);
-    });
+    prefs.getString('latitude') ??
+        Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.best,
+                forceAndroidLocationManager: true)
+            .then((Position position) {
+          setState(() {
+            print("dapat lokasi di position $position");
+            _currentPosition = position;
+            prefs
+              ..setString('latitude', _currentPosition.latitude.toString())
+              ..setString('longitude', _currentPosition.longitude.toString());
+            _getAddressFromLatLng();
+          });
+        }).catchError((e) {
+          print(e);
+        });
   }
 
   _getAddressFromLatLng() async {

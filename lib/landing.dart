@@ -57,6 +57,7 @@ class LandingScreen extends StatelessWidget {
             children: [
               Container(
                 child: ListView(
+                  physics: BouncingScrollPhysics(),
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(45, 20, 45, 20),
@@ -154,8 +155,8 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
                       value
-                          ? await AndroidAlarmManager.oneShot(
-                              Duration(seconds: 15), 1, fireUpload,
+                          ? await AndroidAlarmManager.periodic(
+                              Duration(minutes: 15), 1, fireUpload,
                               exact: true,
                               wakeup: true,
                               rescheduleOnReboot: true)
@@ -170,7 +171,7 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                       broadcastBLE.isBroadcasting = value;
                       if (value) {
                         await AndroidAlarmManager.periodic(
-                            Duration(seconds: 2), 0, fireAlarm,
+                            Duration(minutes: 3), 0, fireAlarm,
                             exact: true,
                             wakeup: true,
                             rescheduleOnReboot: true);
@@ -226,6 +227,7 @@ void fireAlarm() async {
         .listen((scanResult) {
       List parsed = scanResult.advertisementData.manufacturerData;
       int rssi = scanResult.rssi;
+      print(scanResult.rssi.toString() + ' ' + parsed.toString());
       if (parsed.length == 26 && rssi > threshold) {
         final parsedSlave = Uuid.unparse(parsed.sublist(10, 26));
         final slave = parsedSlave.substring(9, 12);
@@ -286,7 +288,7 @@ void fireUpload() async {
   final updateBody = jsonEncode({
     "name": prefs.getString('name'),
     "address": place.street,
-    "state": int.parse(place.postalCode),
+    "state": null,
     "lat": latitude,
     "lng": longitude
   });

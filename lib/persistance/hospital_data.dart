@@ -96,6 +96,5 @@ insertHospital() {
         "RSUD Pare Kediri",
         "Jl. Pahlawan Kusuma Bangsa No. 1, Cangkring, Pelem, Pare, Kediri, Jawa Timur 64213",
         "0354391718"));
-  } else
-    return print("nothing");
+  }
 }

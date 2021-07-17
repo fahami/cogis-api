@@ -48,8 +48,6 @@ class AuthSystem with ChangeNotifier {
         prefs.setString(
             'uuid1', "00000000-0000-$part1-7263-${userId}000000000");
         uuid = "00000000-0000-$part1-7263-${userId}000000000";
-        print(prefs.getString('uuid1'));
-        print(prefs.getInt('threshold'));
       } else {
         return null;
       }

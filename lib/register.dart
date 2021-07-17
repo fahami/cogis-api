@@ -28,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
             child: Column(
               children: [
                 Image.asset('assets/images/register.png', width: 340),
@@ -41,20 +42,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     children: [
                       InputRoundedField(
+                        autofocus: true,
                         controller: nameController,
                         hintText: 'Nama lengkap',
                         inputType: TextInputType.name,
+                        validationError: 'Masukkan nama lengkap anda',
                       ),
                       InputRoundedField(
                         controller: phoneController,
                         hintText: 'Nomor telepon',
                         inputType: TextInputType.phone,
+                        validationError: 'Masukkan nomor telepon yang valid',
                       ),
                       InputRoundedField(
                         controller: pwdController,
                         hintText: 'Kata sandi',
                         inputType: TextInputType.text,
                         obsecure: true,
+                        validationError: 'Masukkan kata sandi yang valid',
                       ),
                       SizedBox(
                         width: 340,
@@ -79,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Container(
                         width: 200,
                         child: ElevatedButton(
-                          child: Text('Masuk', style: aLightStyle),
+                          child: Text('Daftar', style: aLightStyle),
                           onPressed: _checkedVal == false
                               ? null
                               : () async {
@@ -87,22 +92,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   form.save();
                                   if (form.validate()) {
                                     buildLoginLoader(context);
-                                  } else {}
-                                  var req = await Provider.of<AuthSystem>(
-                                    context,
-                                    listen: false,
-                                  ).createUser(
-                                    name: nameController.text,
-                                    phone: phoneController.text,
-                                    pwd: pwdController.text,
-                                  );
-                                  if (req != 200) {
-                                    registerDialog(context,
-                                        "Nomor anda mungkin pernah digunakan sebelumnya, coba nomor lain.");
-                                  } else {
-                                    registerDialog(context,
-                                        "Selamat, pendaftaran anda telah berhasil. Silahkan melanjutkan login.");
-                                    Get.offAllNamed('/login');
+                                    final req = await Provider.of<AuthSystem>(
+                                      context,
+                                      listen: false,
+                                    ).createUser(
+                                      name: nameController.text,
+                                      phone: phoneController.text,
+                                      pwd: pwdController.text,
+                                    );
+                                    if (req != 200) {
+                                      registerDialog(context,
+                                          "Nomor anda mungkin pernah digunakan sebelumnya, coba nomor lain.");
+                                    } else {
+                                      registerDialog(context,
+                                          "Selamat, pendaftaran anda telah berhasil. Silahkan melanjutkan login.");
+                                      Get.offAllNamed('/login');
+                                    }
                                   }
                                 },
                           style: ElevatedButton.styleFrom(

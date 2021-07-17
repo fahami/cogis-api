@@ -15,6 +15,12 @@ class Hospital extends StatefulWidget {
 }
 
 class _HospitalState extends State<Hospital> {
+  @override
+  void initState() {
+    super.initState();
+    insertHospital();
+  }
+
   int hospitalCount = 25;
   @override
   Widget build(BuildContext context) {
@@ -59,14 +65,16 @@ class _HospitalState extends State<Hospital> {
               }
               final hospitals = Hive.box('hospitals');
               if (hospitals.length == 0) {
-                Center(child: CircularProgressIndicator());
-                return insertHospital();
+                insertHospital();
+                return Center(child: CircularProgressIndicator());
               }
               return Container(
+                color: aBackgroundColor,
                 child: ValueListenableBuilder(
                   valueListenable: hospitals.listenable(),
                   builder: (context, box, _) {
                     return ListView.builder(
+                      physics: BouncingScrollPhysics(),
                       itemCount: box.length,
                       itemBuilder: (context, index) {
                         final itemHospital = box.getAt(index) as Hospitals;

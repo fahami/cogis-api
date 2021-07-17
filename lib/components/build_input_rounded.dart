@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cogis/components/build_input_field.dart';
 
 class InputRoundedField extends StatelessWidget {
+  final bool autofocus;
   final TextInputType inputType;
   final String hintText;
   final bool obsecure;
@@ -17,12 +18,14 @@ class InputRoundedField extends StatelessWidget {
     this.controller,
     this.fillHints,
     this.validationError,
+    this.autofocus,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BuildInputField(
       child: TextFormField(
+        autofocus: autofocus ?? false,
         textInputAction: TextInputAction.next,
         autofillHints: fillHints,
         controller: controller,

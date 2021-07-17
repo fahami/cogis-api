@@ -113,23 +113,27 @@ class _ContactTraceState extends State<ContactTrace> {
                         Text('Daftar riwayat kontak', style: aHeadingStyle),
                         Expanded(
                           child: ValueListenableBuilder(
-                            valueListenable:
-                                Hive.box('scansresult').listenable(),
-                            builder: (context, box, _) => ListView.builder(
-                              controller: s,
-                              itemCount: box.length,
-                              itemBuilder: (context, index) {
-                                final itemScan =
-                                    box.getAt(index) as ScansResult;
-                                return ListCTA(
-                                    titleCTA:
-                                        "${itemScan.rssi}dBm | ${itemScan.master} <–> ${itemScan.slave}",
-                                    subtitleCTA: DateFormat.jm()
-                                        .format(itemScan.scanDate)
-                                        .toString());
-                              },
-                            ),
-                          ),
+                              valueListenable:
+                                  Hive.box('scansresult').listenable(),
+                              builder: (context, box, _) {
+                                if (box.length == 0) {
+                                  return Text("Belum ada data kontak.");
+                                }
+                                return ListView.builder(
+                                  controller: s,
+                                  itemCount: box.length,
+                                  itemBuilder: (context, index) {
+                                    final itemScan =
+                                        box.getAt(index) as ScansResult;
+                                    return ListCTA(
+                                        titleCTA:
+                                            "${itemScan.rssi}dBm | ${itemScan.master} <–> ${itemScan.slave}",
+                                        subtitleCTA: DateFormat.jm()
+                                            .format(itemScan.scanDate)
+                                            .toString());
+                                  },
+                                );
+                              }),
                         ),
                       ],
                     ),

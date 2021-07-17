@@ -1,4 +1,5 @@
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:android_power_manager/android_power_manager.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:cogis/provider/auth_provider.dart';
@@ -8,6 +9,7 @@ import 'package:cogis/model/scans.dart';
 import 'package:cogis/model/user.dart';
 import 'package:cogis/register.dart';
 import 'package:cogis/statistics.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cogis/contact.dart';
@@ -43,9 +45,33 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
+void init() async {
+  var status = await Permission.ignoreBatteryOptimizations.status;
+  print("status batt optim: $status");
+  if (status.isGranted) {
+    print(
+        "ignoring: ${(await AndroidPowerManager.isIgnoringBatteryOptimizations)}");
+    if (!(await AndroidPowerManager.isIgnoringBatteryOptimizations)) {
+      AndroidPowerManager.requestIgnoreBatteryOptimizations();
+    }
+  } else {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.ignoreBatteryOptimizations,
+    ].request();
+    print(
+        "permission value: ${statuses[Permission.ignoreBatteryOptimizations]}");
+    if (statuses[Permission.ignoreBatteryOptimizations].isGranted) {
+      AndroidPowerManager.requestIgnoreBatteryOptimizations();
+    } else {
+      SystemNavigator.pop();
+    }
+  }
+}
+
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+    init();
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CoGIS',

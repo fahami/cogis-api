@@ -43,7 +43,7 @@ class BroadcastBLE with ChangeNotifier {
               .setMajorId(1)
               .setMinorId(100)
               .setManufacturerId(0x0118)
-              .setAdvertiseMode(AdvertiseMode.lowPower)
+              .setAdvertiseMode(AdvertiseMode.balanced)
               .start();
         });
       } else {

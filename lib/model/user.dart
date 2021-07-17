@@ -9,6 +9,5 @@ class User {
   String userId;
   @HiveField(2)
   String phone;
-
   User(this.name, this.userId, this.phone);
 }
