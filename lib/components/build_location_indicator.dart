@@ -54,31 +54,37 @@ class _GPSLocationState extends State<GPSLocation> {
 
   _getCurrentLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.getString('latitude') ??
-        Geolocator.getCurrentPosition(
-                desiredAccuracy: LocationAccuracy.best,
-                forceAndroidLocationManager: true)
-            .then((Position position) {
-          setState(() {
-            print("dapat lokasi di position $position");
-            _currentPosition = position;
-            prefs
-              ..setString('latitude', _currentPosition.latitude.toString())
-              ..setString('longitude', _currentPosition.longitude.toString());
-            _getAddressFromLatLng();
-          });
-        }).catchError((e) {
-          print(e);
+    try {
+      Geolocator.getCurrentPosition(
+              timeLimit: Duration(seconds: 5),
+              desiredAccuracy: LocationAccuracy.best)
+          .then((Position position) {
+        setState(() {
+          print("Mendapatkan lokasi di $position");
+          _currentPosition = position;
+          prefs
+            ..setString('latitude', _currentPosition.latitude.toString())
+            ..setString('longitude', _currentPosition.longitude.toString());
+          _getAddressFromLatLng(position.latitude, position.longitude);
         });
+      }).catchError((e) {
+        print(e);
+        final lat = double.parse(prefs.getString('latitude') ?? "-7.2758471");
+        final lng = double.parse(prefs.getString('longitude') ?? "112.791567");
+        _getAddressFromLatLng(lat, lng);
+      });
+    } catch (e) {
+      print("Gagal mendapatkan lokasi pengguna");
+    }
   }
 
-  _getAddressFromLatLng() async {
+  _getAddressFromLatLng(double latitude, double longitude) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
-          _currentPosition.latitude, _currentPosition.longitude,
+          latitude, longitude,
           localeIdentifier: "id_ID");
-
       Placemark place = placemarks[0];
+      print("Didapatkan lokasi geocoding $place");
       setState(() {
         _currentAddress = "${place.subLocality}, ${place.isoCountryCode}";
       });

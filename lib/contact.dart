@@ -26,10 +26,12 @@ LatLng coordinate = LatLng(-7.291152, 112.684962);
 class _ContactTraceState extends State<ContactTrace> {
   final MapController mapController = MapController();
   Future<LatLng> getLocation() async {
+    print('trying to get location');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final lat = double.parse(prefs.getString('latitude'));
-    final lng = double.parse(prefs.getString('longitude'));
+    final lat = double.parse(prefs.getString('latitude') ?? "-7.2758471");
+    final lng = double.parse(prefs.getString('longitude') ?? "112.791567");
     coordinate = LatLng(lat, lng);
+    print(coordinate);
     return coordinate;
   }
 

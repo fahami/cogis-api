@@ -155,8 +155,8 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
                       value
-                          ? await AndroidAlarmManager.periodic(
-                              Duration(minutes: 15), 1, fireUpload,
+                          ? await AndroidAlarmManager.oneShot(
+                              Duration(seconds: 2), 1, fireUpload,
                               exact: true,
                               wakeup: true,
                               rescheduleOnReboot: true)
@@ -262,23 +262,31 @@ void fireAlarm() async {
 void fireUpload() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   int id = prefs.getInt('userId');
-  String latitude = prefs.getString('latitude') ?? null;
-  String longitude = prefs.getString('longitude') ?? null;
+
   var appDir = await pathPro.getApplicationDocumentsDirectory();
   Hive
     ..init(appDir.path)
     ..registerAdapter(ScansResultAdapter(), override: true);
-  final geolocation = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.best);
-  String geolatitude = geolocation.latitude.toString();
-  String geolongitude = geolocation.longitude.toString();
-  latitude = geolatitude ?? latitude;
-  longitude = geolongitude ?? longitude;
+  try {
+    await Geolocator.getCurrentPosition(
+            timeLimit: Duration(seconds: 5),
+            desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      prefs
+        ..setString('latitude', position.latitude.toString())
+        ..setString('longitude', position.longitude.toString());
+    });
+  } catch (e) {
+    print(e);
+  }
+
+  String latitude = prefs.getString('latitude') ?? null;
+  String longitude = prefs.getString('longitude') ?? null;
   List<Placemark> placemarks = await placemarkFromCoordinates(
       double.parse(latitude), double.parse(longitude),
       localeIdentifier: "id_ID");
-
   Placemark place = placemarks[0];
+  print(place);
   final boxes = await Hive.openBox<ScansResult>('scansresult');
   final header = {
     'Accept': 'application/json',
