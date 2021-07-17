@@ -155,8 +155,8 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
                       value
-                          ? await AndroidAlarmManager.oneShot(
-                              Duration(seconds: 2), 1, fireUpload,
+                          ? await AndroidAlarmManager.periodic(
+                              Duration(minutes: 15), 1, fireUpload,
                               exact: true,
                               wakeup: true,
                               rescheduleOnReboot: true)
