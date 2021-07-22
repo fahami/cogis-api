@@ -43,6 +43,9 @@ class AuthSystem with ChangeNotifier {
         prefs.setString('name', loginUserFromJson(req.body).name);
         prefs.setInt('threshold', loginUserFromJson(req.body).rssi);
         prefs.setString('phone', phone);
+        prefs.setInt(
+            'uploadInterval', loginUserFromJson(req.body).uploadInterval);
+        prefs.setInt('scanInterval', loginUserFromJson(req.body).scanInterval);
         String part1 = phone.substring(0, 4);
         int userId = loginUserFromJson(req.body).id;
         prefs.setString(

@@ -3,12 +3,10 @@ import 'package:android_power_manager/android_power_manager.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as pathPro;
 import 'package:cogis/provider/auth_provider.dart';
-import 'package:cogis/medical_report.dart';
 import 'package:cogis/model/hospitals.dart';
 import 'package:cogis/model/scans.dart';
 import 'package:cogis/model/user.dart';
 import 'package:cogis/register.dart';
-import 'package:cogis/statistics.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -93,9 +91,7 @@ class _MyAppState extends State<MyApp> {
         GetPage(name: '/register', page: () => RegisterScreen()),
         GetPage(name: '/login', page: () => LoginScreen()),
         GetPage(name: '/hospital', page: () => Hospital()),
-        GetPage(name: '/medical', page: () => MedicalReport()),
         GetPage(name: '/contact', page: () => ContactTrace()),
-        GetPage(name: '/stats', page: () => Statistic()),
         GetPage(name: '/home', page: () => LandingScreen()),
         GetPage(name: '/creator', page: () => CreatorPage()),
       ],

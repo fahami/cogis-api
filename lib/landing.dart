@@ -111,6 +111,8 @@ class BuildPanel extends StatefulWidget {
 }
 
 class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
+  int periodUpload = 0;
+  int periodScan = 0;
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -129,6 +131,12 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
       print('Aplikasi kembali dibuka');
       BroadcastBLE().stateBroadcasting();
     }
+  }
+
+  void setupInterval() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    periodUpload = prefs.getInt('uploadInterval');
+    periodScan = prefs.getInt('scanInterval');
   }
 
   @override
@@ -154,9 +162,13 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     value: broadcastBLE.isUploading,
                     onChanged: (value) async {
                       broadcastBLE.isUploading = value;
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      periodUpload = prefs.getInt('uploadInterval');
+                      print(periodUpload);
                       value
                           ? await AndroidAlarmManager.periodic(
-                              Duration(minutes: 15), 1, fireUpload,
+                              Duration(minutes: periodUpload), 1, fireUpload,
                               exact: true,
                               wakeup: true,
                               rescheduleOnReboot: true)
@@ -169,9 +181,13 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
                     value: broadcastBLE.isBroadcasting,
                     onChanged: (value) async {
                       broadcastBLE.isBroadcasting = value;
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      periodScan = prefs.getInt('scanInterval');
+                      print(periodScan);
                       if (value) {
                         await AndroidAlarmManager.periodic(
-                            Duration(minutes: 3), 0, fireAlarm,
+                            Duration(minutes: periodScan), 0, fireAlarm,
                             exact: true,
                             wakeup: true,
                             rescheduleOnReboot: true);
@@ -207,6 +223,7 @@ class _BuildPanelState extends State<BuildPanel> with WidgetsBindingObserver {
 }
 
 void fireAlarm() async {
+  print("scan tertrigger pada ${DateTime.now()}");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var appDir = await pathPro.getApplicationDocumentsDirectory();
   Hive
@@ -260,6 +277,7 @@ void fireAlarm() async {
 }
 
 void fireUpload() async {
+  print("upload tertrigger pada ${DateTime.now()}");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   int id = prefs.getInt('userId');
 
