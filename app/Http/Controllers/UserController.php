@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Master;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +69,7 @@ class UserController extends Controller
             return response()->json(['status' => 400], 400);
         }
         $user = User::where('phone', $request->phone)->first();
-        $thresholdVal = DB::table('masters')->latest()->value('threshold');
+        $master = Master::select('threshold', 'uploadInterval', 'scanInterval')->first();
         if ($user && Hash::check($request->pwd, $user->pwd)) {
             $token = Str::random(40);
             $user->update(['api_token' => $token]);
@@ -76,7 +77,9 @@ class UserController extends Controller
                 'id' => $user->id_user,
                 'name' => $user->name,
                 'api_token' => $token,
-                'rssi' => $thresholdVal,
+                'rssi' => $master->threshold,
+                'uploadInterval' => $master->uploadInterval,
+                'scanInterval' => $master->scanInterval,
             ], 200);
         }
         return response()->json(['status' => 404], 404);

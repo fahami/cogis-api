@@ -16,6 +16,8 @@ class CreateMastersTable extends Migration
         Schema::create('masters', function (Blueprint $table) {
             $table->id();
             $table->integer('threshold');
+            $table->integer('uploadInterval');
+            $table->integer('scanInterval');
             $table->string('user');
             $table->string('pwd');
             $table->string('api_token', 40)->nullable();
