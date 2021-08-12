@@ -26,7 +26,7 @@ class NodeController extends Controller
     }
     public function find($id)
     {
-        $itself = User::select("id_user AS id", "lat", "lng", "name AS title")
+        $itself = User::select("id_user AS id", "lat", "lng", "name AS title", "state")
             ->where("id_user", $id)
             ->get();
 
