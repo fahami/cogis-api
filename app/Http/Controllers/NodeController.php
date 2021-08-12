@@ -37,7 +37,6 @@ class NodeController extends Controller
             ->get();
         $merged = $itself->concat($node);
         $merged->map(function ($data) {
-            echo $data->state;
             $data->id;
             $data->title;
             $data->label = strval($data->id);
