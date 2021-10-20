@@ -40,12 +40,6 @@ class MasterController extends Controller
             echo $el->state;
             array_push($positive, 1);
         });
-        // $positive = collect($positive);
-        // echo $positive;
-        // $counted = $positive->countBy();
-        // $counted->all();
-        // echo $user;
-        // $positive++;
         return response()->json($positive, 200);
     }
 }
